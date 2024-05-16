@@ -1,0 +1,43 @@
+[app]
+# title of your application
+title = OpenDynamicClamp Commander
+# project directory. the general assumption is that project_dir is the parent directory
+# of input_file
+project_dir = .
+# source file path
+input_file = ODC Commander.py
+# directory where exec is stored
+exec_directory = .
+# path to .pyproject project file
+project_file = 
+# application icon
+icon = {{ icon }}
+
+[python]
+# python path
+python_path = {{ python_path }}
+# python packages to install
+# ordered-set = increase compile time performance of nuitka packaging
+# zstandard = provides final executable size optimization
+packages = Nuitka,imageio
+# buildozer = for deploying Android application
+android_packages = buildozer==1.5.0,cython==0.29.33
+
+[qt]
+# comma separated path to qml files required
+# normally all the qml files required by the project are added automatically
+qml_files = 
+# excluded qml plugin binaries
+excluded_qml_plugins = 
+# qt modules used. comma separated
+modules = SerialPort,Widgets,Core,DBus,Gui
+# qt plugins used by the application
+plugins = platforms/darwin,platformthemes,accessiblebridge,platforms,xcbglintegrations,iconengines,egldeviceintegrations,platforminputcontexts,imageformats,generic,styles
+
+[nuitka]
+# usage description for permissions requested by the app as found in the info.plist file
+# of the app bundle
+# eg = extra_args = --show-modules --follow-stdlib
+macos.permissions = 
+# (str) specify any extra nuitka arguments
+extra_args = --quiet --noinclude-qt-translations --static-libpython=no --include-package-data=odc_commander

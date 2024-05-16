@@ -1,0 +1,40 @@
+name: Continuous Integration
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  rcc:
+    name: Compile Resource Bundle Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Release Build
+        run: ./bin/compile-rcc
+
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    name: Build Smoke Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Python
+        uses: actions/setup-python@v4
+        with:
+          python-version-file: 'pyproject.toml'
+
+      - name: Release Build
+        run: ./bin/release

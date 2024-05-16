@@ -8,7 +8,12 @@
 ## Local Development
 
 ```shell
-poetry install
+poetry install --no-root
 
 poetry run python -m odc_commander
+```
+
+Rebuild theme files
+```shell
+compile-pyside-theme src/odc_commander
 ```

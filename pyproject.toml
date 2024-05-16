@@ -1,28 +1,39 @@
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "odc-commander"
-version = "0.1.0"
+version = "0.2.0"
 description = "Control the Open Dynamic Clamp Hardware"
 authors = ["Leonardo Covarrubias <leo@leocov.com>"]
 license = "CC BY 4.0"
 readme = "README.md"
 packages = [
     { include = "odc_commander", from = "src" },
-    { include = "core_plus", from = "src" },
 ]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<3.13"
-pyside6 = { version = "^6.6.3.1", python = ">=3.11,<3.13" }
-cobs = "^1.2.1"
-loguru = "^0.7.2"
-pyside-app-core = "^0.2.0"
+pyside6 = { version = "6.7.*", python = ">=3.11,<3.13" }
+cobs = "1.*"
+loguru = "0.*"
+pyside-app-core = {path = "../pyside-app-core", develop = true}
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.9.0"
-black = "^24.3.0"
-jinja2 = "^3.1.3"
+mypy = "1.*"
+black = "24.*"
+jinja2 = "3.*"
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.poetry.group.debug.dependencies]
+pyserial = "*"
 
+# ------------------------------
+# linting
+[tool.black]
+
+[tool.mypy]
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+packages = ["odc_commander"]
+strict = true
+implicit_reexport = true

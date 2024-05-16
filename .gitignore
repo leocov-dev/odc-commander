@@ -1,6 +1,19 @@
 .idea
 
+build/
 dist/
+deployment/
+*.egg-info/
 
 venv/
 .venv/
+
+.DS_Store
+
+__pycache__/
+.pytest_cache/
+.import_linter_cache/
+
+.python-version
+
+pysidedeploy.spec

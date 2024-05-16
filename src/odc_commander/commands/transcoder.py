@@ -1,39 +1,34 @@
-from typing import Self, TypeVar
+from typing import cast
 
-from cobs import cobs
+from cobs import cobs  # type: ignore[import-untyped]
+from pyside_app_core.services.serial_service.types import ChunkedData, Decodable, Encodable, TranscoderInterface
 
-from pyside_app_core.services.serial_service.types import ChunkedData, TranscoderInterface
 
-
-class Command:
+class Message(Encodable):
     """"""
 
-    def encode(self) -> bytearray:
-        return bytearray()
+    def encode(self) -> bytes:
+        return bytes()
 
     def __str__(self) -> str:
-        return "<Command> ..."
+        return f"<{self.__class__.__name__}>"
 
 
-class Result:
+class Result(Decodable):
     """"""
 
     def __init__(self, data: bytes):
         self._raw_data = data
 
     @classmethod
-    def decode(cls, data: bytes) -> Self:
-        return Result(data)
+    def decode(cls, data: bytes) -> "Result":
+        return cls(data)
 
     def __str__(self) -> str:
-        return "<Result> ..."
+        return f"<{self.__class__.__name__}>"
 
 
-_TC = TypeVar("_TC", bound=Command)
-_TR = TypeVar("_TR", bound=Result)
-
-
-class CobsTranscoder(TranscoderInterface[_TC, _TR]):
+class CobsTranscoder(TranscoderInterface):
     """ COBS transcoder """
 
     @classmethod
@@ -47,15 +42,15 @@ class CobsTranscoder(TranscoderInterface[_TC, _TR]):
         return [], None
 
     @classmethod
-    def encode(cls, data: _TC) -> bytearray:
-        return cobs.encode(data.encode())
+    def encode(cls, data: Encodable) -> bytes:
+        return cast(bytes, cobs.encode(data.encode()))
 
     @classmethod
-    def decode(cls, raw: bytearray) -> _TR:
+    def decode(cls, raw: bytearray) -> Result:
         return Result.decode(cobs.decode(raw))
 
 
-class LegacyTranscoder(TranscoderInterface[_TC, _TR]):
+class LegacyTranscoder(TranscoderInterface):
     """ legacy string transcoder """
 
     @classmethod
@@ -69,9 +64,9 @@ class LegacyTranscoder(TranscoderInterface[_TC, _TR]):
         return [], None
 
     @classmethod
-    def encode(cls, data: _TC) -> bytearray:
+    def encode(cls, data: Encodable) -> bytes:
         return data.encode()
 
     @classmethod
-    def decode(cls, raw: bytearray) -> _TR:
+    def decode(cls, raw: bytearray) -> Result:
         return Result.decode(raw)
