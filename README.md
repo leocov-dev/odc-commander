@@ -8,7 +8,7 @@
 ## Local Development
 
 ```shell
-poetry install --no-root
+poetry install --no-root --with dev
 
 poetry run python -m odc_commander
 ```
