@@ -1,4 +1,5 @@
 .idea
+!.idea/icon.svg
 
 build/
 dist/

@@ -14,8 +14,8 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-pyside6 = { version = "6.7.*", python = ">=3.11,<3.13" }
+python = "3.11.*"
+pyside6 = "6.7.*"
 cobs = "1.*"
 loguru = "0.*"
 pyside-app-core = {path = "../pyside-app-core", develop = true}
