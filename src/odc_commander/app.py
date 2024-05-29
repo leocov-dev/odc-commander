@@ -32,10 +32,10 @@ def _port_filter(ports: list[QSerialPortInfo]) -> list[QSerialPortInfo]:
 
 
 class OdcCommanderApp(BaseApp):
-    """ Main App """
+    """Main App"""
 
     def __init__(self) -> None:
-        super(OdcCommanderApp, self).__init__(resources_rcc=None)
+        super().__init__(resources_rcc=None)
 
         self._main_window = OdcMainWindow()
 

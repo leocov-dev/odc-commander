@@ -1,7 +1,7 @@
 import contextlib
 import os
 from pathlib import Path
-from typing import Iterator
+from collections.abc import Iterator
 
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
 

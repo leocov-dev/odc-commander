@@ -8,7 +8,7 @@ class Message(Encodable):
     """"""
 
     def encode(self) -> bytes:
-        return bytes()
+        return b""
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}>"
@@ -29,7 +29,7 @@ class Result(Decodable):
 
 
 class CobsTranscoder(TranscoderInterface):
-    """ COBS transcoder """
+    """COBS transcoder"""
 
     @classmethod
     def process_buffer(cls, buffer: bytearray) -> ChunkedData:
@@ -51,7 +51,7 @@ class CobsTranscoder(TranscoderInterface):
 
 
 class LegacyTranscoder(TranscoderInterface):
-    """ legacy string transcoder """
+    """legacy string transcoder"""
 
     @classmethod
     def process_buffer(cls, buffer: bytearray) -> ChunkedData:

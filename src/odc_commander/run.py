@@ -17,16 +17,15 @@ AppMetadata.init(
     ":/odc/app/icon.png",
     None,
     "https://github.com/nsdesai/dynamic_clamp",
-    "https://github.com/nsdesai/dynamic_clamp/issues"
-
+    "https://github.com/nsdesai/dynamic_clamp/issues",
 )
 
 app = OdcCommanderApp()
 
 
-def run():
+def run() -> None:
     app.launch()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

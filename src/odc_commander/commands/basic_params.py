@@ -7,7 +7,6 @@ _V = TypeVar("_V")
 
 
 class ParamType(Protocol[_V]):
-
     @property
     def value(self) -> _V: ...
 
@@ -36,7 +35,7 @@ class FloatParam(Message):
         return self._label
 
     def encode(self) -> bytes:
-        return struct.pack('>f', self._value)
+        return struct.pack(">f", self._value)
 
     def __str__(self) -> str:
         return f"<{self.__class__.__name__}: {self._value:10.6f}>"

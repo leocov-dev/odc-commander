@@ -2,18 +2,32 @@
 
 ## Requirements
 
-- Poetry
+- Hatch
 - Python 3.11.*, 3.12.*
 
 ## Local Development
 
+Create the default venv
 ```shell
-poetry install --no-root --with dev
+hatch env create
+```
 
-poetry run python -m odc_commander
+Run the app
+```shell
+hatch run odc-commander
 ```
 
 Rebuild theme files
 ```shell
-compile-pyside-theme src/odc_commander
+hatch run compile-rcc
+```
+
+Create a local release
+```shell
+hatch run release-build
+```
+
+Run linting/formatting
+```shell
+hatch fmt
 ```

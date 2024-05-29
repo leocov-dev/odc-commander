@@ -1,39 +1,117 @@
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry]
+[project]
 name = "odc-commander"
-version = "0.2.0"
 description = "Control the Open Dynamic Clamp Hardware"
-authors = ["Leonardo Covarrubias <leo@leocov.com>"]
-license = "CC BY 4.0"
+authors = [
+    { name = "Leo Covarrubias", email = "leo@leocov.com" },
+]
 readme = "README.md"
-packages = [
-    { include = "odc_commander", from = "src" },
+license-files = { paths = ["LICENSE"] }
+requires-python = ">=3.11"
+dependencies = [
+    "pyside6==6.7.*",
+    "cobs==1.*",
+    "loguru",
+    "pyside-app-core==0.3.*",
+    #pyside-app-core = {path = "../pyside-app-core", develop = true}
+]
+dynamic = ["version"]
+
+[project.urls]
+"Source" = "https://github.com/leocov-dev/odc-commander"
+"Issues" = "https://github.com/leocov-dev/odc-commander/issues"
+"Releases" = "https://github.com/leocov-dev/odc-commander/releases"
+
+[tool.hatch.version]
+path = "src/odc_commander/__init__.py"
+
+# default ---------------------------------------------------------------
+[tool.hatch.envs.default]
+type = "virtual"
+path = ".venv"
+
+[tool.hatch.envs.default.scripts]
+odc-commander = "python \"src/ODC Commander.py\""
+release-build = "hatch run scripts/release-build.py"
+compile-rcc = "hatch run scripts/compile-rcc.py"
+
+# format/linting ---------------------------------------------------------------
+[tool.hatch.envs.hatch-static-analysis]
+dev-mode = true
+skip-install = false
+extra-dependencies = [
+    "pyside6==6.7.*",
+    "jinja2==3.*",
+    "mypy",
+    "import-linter==2.*",
 ]
 
-[tool.poetry.dependencies]
-python = "3.11.*"
-pyside6 = "6.7.*"
-cobs = "1.*"
-loguru = "0.*"
-pyside-app-core = {path = "../pyside-app-core", develop = true}
+[tool.hatch.envs.hatch-static-analysis.env-vars]
+PYTHONPATH = "{root}/src:{env:PYTHONPATH:}"
 
-[tool.poetry.group.dev.dependencies]
-mypy = "1.*"
-black = "24.*"
-jinja2 = "3.*"
+[tool.hatch.envs.hatch-static-analysis.scripts]
+format-check = [
+    'ruff format{env:HATCH_FMT_ARGS:} --check --diff {args:.}',
+]
+format-fix = [
+    'ruff format{env:HATCH_FMT_ARGS:} {args:.}'
+]
+lint-check = [
+    'mypy',
+    'ruff check{env:HATCH_FMT_ARGS:} {args:.}',
+    'lint-imports',
+]
+lint-fix = [
+    'mypy',
+    'ruff check{env:HATCH_FMT_ARGS:} --fix {args:.}',
+    'lint-imports',
+]
 
-[tool.poetry.group.debug.dependencies]
-pyserial = "*"
 
 # ------------------------------
 # linting
-[tool.black]
+[tool.ruff.lint]
+extend-ignore = [
+    "EM101",
+    "EM102",
+    "TRY003",
+    "I001",
+]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"__init__.py" = [
+    "F401",
+    "TID252",
+]
+"scripts/*" = [
+    "S607",
+]
+"ODC Commander.py" = [
+    "INP001",
+]
 
 [tool.mypy]
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
 packages = ["odc_commander"]
 strict = true
 implicit_reexport = true
+
+# ------------------------------
+# import linter config and rules
+[tool.importlinter]
+root_packages = [
+    "odc_commander",
+    "debug"
+]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "debug tools"
+type = "layers"
+layers = [
+    "odc_commander",
+    "debug",
+]
