@@ -10,13 +10,14 @@ authors = [
 ]
 readme = "README.md"
 license-files = { paths = ["LICENSE"] }
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "pyside6==6.7.*",
     "cobs==1.*",
     "loguru",
-    "pyside-app-core==0.3.*",
-    #pyside-app-core = {path = "../pyside-app-core", develop = true}
+#    "pyside-app-core==0.3.*",
+    "pyside-app-core @ {root:uri}/../pyside-app-core"
+#    pyside-app-core = {path = "../pyside-app-core"}
 ]
 dynamic = ["version"]
 
@@ -27,6 +28,9 @@ dynamic = ["version"]
 
 [tool.hatch.version]
 path = "src/odc_commander/__init__.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 # default ---------------------------------------------------------------
 [tool.hatch.envs.default]
@@ -45,7 +49,7 @@ skip-install = false
 extra-dependencies = [
     "pyside6==6.7.*",
     "jinja2==3.*",
-    "mypy",
+    "mypy>=1.10",
     "import-linter==2.*",
 ]
 

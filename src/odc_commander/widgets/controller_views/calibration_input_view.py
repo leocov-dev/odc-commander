@@ -1,6 +1,6 @@
-from PySide6 import QtWidgets
+from PySide6.QtWidgets import QWidget
 
 
-class CalibrationInputView(QtWidgets.QWidget):
-    def __init__(self, controller: object, parent: QtWidgets.QWidget | None = None):  # noqa: ARG002
+class CalibrationInputView(QWidget):
+    def __init__(self, controller: object, parent: QWidget | None = None):  # noqa: ARG002
         super().__init__(parent=parent)

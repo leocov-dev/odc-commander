@@ -25,7 +25,3 @@ app = OdcCommanderApp()
 
 def run() -> None:
     app.launch()
-
-
-if __name__ == "__main__":
-    run()

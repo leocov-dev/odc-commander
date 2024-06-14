@@ -1,12 +1,11 @@
 import logging
 
 from PySide6.QtSerialPort import QSerialPortInfo
-from PySide6.QtWidgets import QMainWindow
-from pyside_app_core.qt.standard import MainWindow
 from pyside_app_core.qt.widgets.base_app import BaseApp
 from pyside_app_core.services.serial_service import SerialService
 
 from odc_commander import commands, controllers
+from odc_commander.parameters import RUNTIME_PARAMS
 from odc_commander.widgets.controller_views.calibration_input_view import CalibrationInputView
 from odc_commander.widgets.controller_views.calibration_output_view import CalibrationOutputView
 from odc_commander.widgets.controller_views.runtime_view import RuntimeView
@@ -35,21 +34,24 @@ class OdcCommanderApp(BaseApp):
     """Main App"""
 
     def __init__(self) -> None:
-        super().__init__(resources_rcc=None)
+        super().__init__()
 
-        self._main_window = OdcMainWindow()
-
+        # ---
         self._serial_com = SerialService(commands.LegacyTranscoder, parent=self)
         self._serial_com.set_port_filter(_port_filter)
 
+        # ---
+        self._main_window.add_controller_tab(RuntimeView(controllers.Runtime(RUNTIME_PARAMS)))
+        self._main_window.add_controller_tab(CalibrationInputView(controllers.CalibrationInput()))
+        self._main_window.add_controller_tab(CalibrationOutputView(controllers.CalibrationOutput()))
+
+        # ---
+        self._serial_com.register_reader(self._main_window.connection_manager)
+
+        # ---
         self._main_window.connection_manager.refresh_ports.connect(self._serial_com.scan_for_ports)
         self._main_window.connection_manager.request_connect.connect(self._serial_com.open_connection)
         self._main_window.connection_manager.request_disconnect.connect(self._serial_com.close_connection)
-        self._serial_com.register_reader(self._main_window.connection_manager)
 
-        self._main_window.add_controller_view(RuntimeView(controllers.Runtime()))
-        self._main_window.add_controller_view(CalibrationInputView(controllers.CalibrationInput()))
-        self._main_window.add_controller_view(CalibrationOutputView(controllers.CalibrationOutput()))
-
-    def build_main_window(self) -> QMainWindow:
-        return MainWindow()
+    def build_main_window(self) -> OdcMainWindow:
+        return OdcMainWindow()

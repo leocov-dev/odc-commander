@@ -1,5 +1,11 @@
 # ODC Commander
 
+> This is still work-in-progress and is not producing usable builds
+
+## Install
+
+Browse the Releases page for pre-compiled app executables.
+
 ## Requirements
 
 - Hatch

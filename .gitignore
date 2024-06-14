@@ -6,6 +6,8 @@ dist/
 deployment/
 *.egg-info/
 
+*.pyc
+
 venv/
 .venv/
 

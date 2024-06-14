@@ -10,9 +10,9 @@ class OdcMainWindow(MainWindow):
     def __init__(self) -> None:
         super().__init__()
 
-        self.setMinimumSize(256, 128)
+        self.setMinimumSize(420, 128)
 
-        self.statusBar().showMessage(AppMetadata.version)
+        self.statusBar().showMessage(f"v{AppMetadata.version}")
 
         central = QWidget(self)
         self.setCentralWidget(central)
@@ -22,15 +22,15 @@ class OdcMainWindow(MainWindow):
         _ly.setContentsMargins(0, 0, 0, 0)
         central.setLayout(_ly)
 
-        self._main_container = QTabWidget(self)
-        self._main_container.setLayout(QVBoxLayout())
-        _ly.addWidget(self._main_container)
+        self._main_tabs = QTabWidget(self)
+        _ly.addWidget(self._main_tabs)
 
         self._connection_manager = ConnectionManager(parent=self)
         _ly.addWidget(self._connection_manager)
 
         # -----
         QTimer.singleShot(1 * SECONDS, self._connection_manager.request_port_refresh)
+        self._main_tabs.currentChanged.connect(self.adjustSize)
 
     @property
     def connection_manager(self) -> ConnectionManager:
@@ -41,14 +41,13 @@ class OdcMainWindow(MainWindow):
         with self.menu_bar.menu("View"):
             pass
 
-    def add_controller_view(self, view: QWidget) -> None:
+    def add_controller_tab(self, view: QWidget) -> None:
         view.setParent(self)
-        self._main_container.layout().addWidget(view)
-        tab_index = self._main_container.addTab(view, view.__class__.__name__)
+        tab_index = self._main_tabs.addTab(view, view.__class__.__name__)
 
         with (
             self.menu_bar.menu("View") as view_menu,
             view_menu.menu("Tools") as tools_menu,
             tools_menu.action(view.__class__.__name__) as view_action,
         ):
-            view_action.triggered.connect(lambda: self._main_container.setCurrentIndex(tab_index))
+            view_action.triggered.connect(lambda: self._main_tabs.setCurrentIndex(tab_index))
