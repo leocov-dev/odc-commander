@@ -26,3 +26,9 @@ jobs:
 
       - name: Release Build
         run: hatch run release-build
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ODC-Commander
+          path: dist

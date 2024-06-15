@@ -14,8 +14,8 @@ from jinja2 import Environment, FileSystemLoader
 
 from lib.utils import cd, DIST_DIR, REPO_ROOT
 
-MACOS_NAME = "OpenDynamicClamp Commander.app"
-WIN_NAME = "OpenDynamicClamp Commander.exe"
+MACOS_NAME = "ODC Commander.app"
+WIN_NAME = "ODC Commander.exe"
 LINUX_NAME = "ODC Commander.bin"
 
 
@@ -62,7 +62,7 @@ def release(exe_name: str) -> None:
 def bundle_macos_dmg(exe_name: str) -> None:
     dmg_name = exe_name.replace(".app", ".dmg")
 
-    dmg_target = REPO_ROOT / "dist" / dmg_name
+    dmg_target = DIST_DIR / dmg_name
     dmg_target.unlink(missing_ok=True)
 
     with cd("dist"):
@@ -70,6 +70,7 @@ def bundle_macos_dmg(exe_name: str) -> None:
             ["hdiutil", "create", "-volname", exe_name, "-srcfolder", exe_name, "-ov", "-format", "UDZO", dmg_name],
         )
 
+    shutil.rmtree(DIST_DIR / exe_name)
 
 if __name__ == "__main__":
     plat = platform.system()
