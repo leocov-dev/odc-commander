@@ -11,7 +11,7 @@ import sys
 
 from jinja2 import Environment, FileSystemLoader
 
-from lib.utils import cd, REPO_ROOT
+from lib.utils import cd, DIST_DIR, REPO_ROOT
 
 macos_name = "OpenDynamicClamp Commander.app"
 win_name = "OpenDynamicClamp Commander.exe"
@@ -20,23 +20,24 @@ linux_name = "OpenDynamicClamp Commander"
 
 def release(exe_name: str) -> None:
     print("PySide6 Deploy...")
+
+    shutil.rmtree(DIST_DIR, ignore_errors=True)
+    print("/dist dir removed...")
+
     with cd("src") as wd:
         env = Environment(loader=FileSystemLoader(wd), autoescape=True)
         pysidedeploy_template = env.get_template("pysidedeploy.spec.jinja2")
 
         spec_txt = pysidedeploy_template.render(
             {
-                "icon": str(wd / "resources" / "odc" / "app" / "icon.png"),
+                "icon":        str(wd / "resources" / "odc" / "app" / "icon.png"),
                 "python_path": sys.executable,
             }
         )
         (wd / "pysidedeploy.spec").write_text(spec_txt)
 
-        app_build = wd / exe_name
-
-        # delete old app executable
-        app_target = REPO_ROOT / "dist" / exe_name
-        shutil.rmtree(app_target, ignore_errors=True)
+        expected_app_build = wd / exe_name
+        dist_app_target = DIST_DIR / exe_name
 
         subprocess.check_call(
             [
@@ -45,9 +46,12 @@ def release(exe_name: str) -> None:
             ],
         )
 
-        if app_build.exists():
+        if expected_app_build.exists():
             # move from build dir to `dist` dir
-            shutil.move(app_build, app_target.parent)
+            shutil.move(expected_app_build, dist_app_target)
+            print(f"Moved app build to {dist_app_target}")
+        else:
+            raise Exception("App build not found after deploy process completed.")
 
 
 def bundle_macos_dmg(exe_name: str) -> None:
