@@ -8,14 +8,15 @@ import platform
 import shutil
 import subprocess
 import sys
+import time
 
 from jinja2 import Environment, FileSystemLoader
 
 from lib.utils import cd, DIST_DIR, REPO_ROOT
 
-macos_name = "OpenDynamicClamp Commander.app"
-win_name = "OpenDynamicClamp Commander.exe"
-linux_name = "OpenDynamicClamp Commander"
+MACOS_NAME = "OpenDynamicClamp Commander.app"
+WIN_NAME = "OpenDynamicClamp Commander.exe"
+LINUX_NAME = "ODC Commander.bin"
 
 
 def release(exe_name: str) -> None:
@@ -23,6 +24,8 @@ def release(exe_name: str) -> None:
 
     shutil.rmtree(DIST_DIR, ignore_errors=True)
     print("/dist dir removed...")
+
+    time.sleep(1)
 
     with cd("src") as wd:
         env = Environment(loader=FileSystemLoader(wd), autoescape=True)
@@ -42,6 +45,7 @@ def release(exe_name: str) -> None:
         subprocess.check_call(
             [
                 "pyside6-deploy",
+                "--force",
                 f'--c={wd / "pysidedeploy.spec"}',
             ],
         )
@@ -51,7 +55,7 @@ def release(exe_name: str) -> None:
             shutil.move(expected_app_build, dist_app_target)
             print(f"Moved app build to {dist_app_target}")
         else:
-            raise Exception("App build not found after deploy process completed.")
+            raise Exception(f"App build not found after deploy process completed. {expected_app_build}")
 
 
 def bundle_macos_dmg(exe_name: str) -> None:
@@ -69,11 +73,11 @@ def bundle_macos_dmg(exe_name: str) -> None:
 if __name__ == "__main__":
     plat = platform.system()
     if plat == "Darwin":
-        release(macos_name)
-        bundle_macos_dmg(macos_name)
+        release(MACOS_NAME)
+        bundle_macos_dmg(MACOS_NAME)
     elif plat == "Windows":
-        release(win_name)
+        release(WIN_NAME)
     elif plat == "Linux":
-        release(linux_name)
+        release(LINUX_NAME)
     else:
         raise Exception(f"Unsupported platform {plat}")  # noqa: TRY002
