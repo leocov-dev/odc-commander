@@ -12,7 +12,7 @@ import time
 
 from jinja2 import Environment, FileSystemLoader
 
-from lib.utils import cd, DIST_DIR, REPO_ROOT
+from lib.utils import cd, DIST_DIR
 
 MACOS_NAME = "ODC Commander.app"
 WIN_NAME = "ODC Commander.exe"
@@ -72,6 +72,14 @@ def bundle_macos_dmg(exe_name: str) -> None:
 
     shutil.rmtree(DIST_DIR / exe_name)
 
+
+def linux_remove_bin_extension(exe_name: str) -> None:
+    with_bin = DIST_DIR / exe_name
+    without_bin = DIST_DIR / exe_name.removesuffix(".bin")
+
+    with_bin.rename(without_bin)
+
+
 if __name__ == "__main__":
     plat = platform.system()
     if plat == "Darwin":
@@ -81,5 +89,6 @@ if __name__ == "__main__":
         release(WIN_NAME)
     elif plat == "Linux":
         release(LINUX_NAME)
+        linux_remove_bin_extension(LINUX_NAME)
     else:
         raise Exception(f"Unsupported platform {plat}")  # noqa: TRY002
