@@ -1,6 +1,7 @@
 import struct
 from collections.abc import MutableSequence
-from typing import Protocol, TypeVar
+from typing import overload, Protocol, TypeVar
+from collections.abc import Iterable
 
 from odc_commander.commands.transcoder import Message
 
@@ -71,20 +72,38 @@ class FloatParam(ParamType[float], Message):
 
 
 class FloatArrayParam(ParamType[list[float]], Message, MutableSequence[FloatParam]):
-
-    def __init__(self, *floats: FloatParam):
+    def __init__(self, label: str, *floats: FloatParam):
+        self._label = label
         self._floats = list(floats or ())
 
-    def __getitem__(self, index: int) -> FloatParam:
-        return self.params[index]
+    @overload
+    def __getitem__(self, index: int) -> FloatParam: ...
 
-    def __setitem__(self, index: int, value: FloatParam) -> None:
-        self.params[index] = value
+    @overload
+    def __getitem__(self, index: slice) -> MutableSequence[FloatParam]: ...
 
-    def __delitem__(self, index: int) -> None:
+    def __getitem__(self, index: int | slice) -> FloatParam | MutableSequence[FloatParam]:
+        return self._floats[index]
+
+    @overload
+    def __setitem__(self, index: int, value: FloatParam) -> None: ...
+
+    @overload
+    def __setitem__(self, index: slice, value: Iterable[FloatParam]) -> None: ...
+
+    def __setitem__(self, index: int | slice, value: FloatParam | Iterable[FloatParam]) -> None:
+        self.params[index] = value  # type: ignore[index, assignment]
+
+    @overload
+    def __delitem__(self, index: int) -> None: ...
+
+    @overload
+    def __delitem__(self, index: slice) -> None: ...
+
+    def __delitem__(self, index: int | slice) -> None:
         del self.params[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.params)
 
     def insert(self, index: int, value: FloatParam) -> None:
@@ -102,6 +121,10 @@ class FloatArrayParam(ParamType[list[float]], Message, MutableSequence[FloatPara
     def value(self, value: list[float]) -> None:
         for i, f in enumerate(value):
             self._floats[i].value = f
+
+    @property
+    def label(self) -> str:
+        return ""
 
     def encode(self) -> bytes:
         fmt = "f" * len(self.params)

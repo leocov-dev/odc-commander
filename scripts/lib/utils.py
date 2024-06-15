@@ -5,7 +5,7 @@ from collections.abc import Iterator
 
 REPO_ROOT = Path(__file__).parent.parent.parent.resolve()
 
-DIST_DIR = REPO_ROOT / 'dist'
+DIST_DIR = REPO_ROOT / "dist"
 
 
 @contextlib.contextmanager

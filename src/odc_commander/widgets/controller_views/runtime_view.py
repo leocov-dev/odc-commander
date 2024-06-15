@@ -2,6 +2,7 @@ from PySide6.QtGui import QUndoCommand
 from PySide6.QtWidgets import QDoubleSpinBox, QFormLayout, QLayout, QSizePolicy, QVBoxLayout, QWidget
 
 from odc_commander.controllers import Runtime
+from odc_commander.interfaces.controller import ControllerView
 
 
 class ParamCommand(QUndoCommand):
@@ -10,7 +11,9 @@ class ParamCommand(QUndoCommand):
         self._param_control = param_control
 
 
-class RuntimeView(QWidget):
+class RuntimeView(ControllerView):
+    TAB_NAME = "Runtime Control"
+
     def __init__(self, controller: Runtime, parent: QWidget | None = None) -> None:
         super().__init__(parent=parent)
 

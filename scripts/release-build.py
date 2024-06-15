@@ -19,6 +19,10 @@ WIN_NAME = "ODC Commander.exe"
 LINUX_NAME = "ODC Commander.bin"
 
 
+class ReleaseError(Exception):
+    """error in the release process"""
+
+
 def release(exe_name: str) -> None:
     print("PySide6 Deploy...")
 
@@ -33,7 +37,7 @@ def release(exe_name: str) -> None:
 
         spec_txt = pysidedeploy_template.render(
             {
-                "icon":        str(wd / "resources" / "odc" / "app" / "icon.png"),
+                "icon": str(wd / "resources" / "odc" / "app" / "icon.png"),
                 "python_path": sys.executable,
             }
         )
@@ -56,7 +60,7 @@ def release(exe_name: str) -> None:
             shutil.move(expected_app_build, dist_app_target)
             print(f"Moved app build to {dist_app_target}")
         else:
-            raise Exception(f"App build not found after deploy process completed. {expected_app_build}")
+            raise ReleaseError(f"App build not found after deploy process completed. {expected_app_build}")
 
 
 def bundle_macos_dmg(exe_name: str) -> None:

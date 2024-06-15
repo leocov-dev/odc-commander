@@ -12,12 +12,12 @@ configure_get_logger_func(lambda: logger)
 excepthook.install_excepthook(ErrorDialog)
 AppMetadata.init(
     "com.odc.commander",
-    "Open Dynamic Clamp Commander",
+    "ODC Commander",
     __version__,
     ":/odc/app/icon.png",
     None,
-    "https://github.com/nsdesai/dynamic_clamp",
-    "https://github.com/nsdesai/dynamic_clamp/issues",
+    "https://github.com/leocov-dev/odc-commander",
+    "https://github.com/leocov-dev/odc-commander/issues",
 )
 
 app = OdcCommanderApp()

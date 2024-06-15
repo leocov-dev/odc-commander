@@ -2,6 +2,7 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# -----------------------------------------------------------------------------
 [project]
 name = "odc-commander"
 description = "Control the Open Dynamic Clamp Hardware"
@@ -16,7 +17,7 @@ dependencies = [
     "cobs==1.*",
     "loguru",
     "pyside-app-core==0.4.*",
-#    "pyside-app-core @ {root:uri}/../pyside-app-core"
+#    "pyside-app-core @ {root:uri}/../pyside-app-core"  # TODO: local dev
 ]
 dynamic = ["version"]
 
@@ -28,10 +29,12 @@ dynamic = ["version"]
 [tool.hatch.version]
 path = "src/odc_commander/__init__.py"
 
-[tool.hatch.metadata]
-allow-direct-references = true
+# TODO: local dev
+# [tool.hatch.metadata]
+# allow-direct-references = true
 
-# default ---------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# default ---------------------------------------------------------------------
 [tool.hatch.envs.default]
 type = "virtual"
 path = ".venv"
@@ -41,7 +44,8 @@ odc-commander = "python \"src/ODC Commander.py\""
 release-build = "hatch run scripts/release-build.py"
 compile-rcc = "hatch run scripts/compile-rcc.py"
 
-# format/linting ---------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# format/linting --------------------------------------------------------------
 [tool.hatch.envs.hatch-static-analysis]
 dev-mode = true
 skip-install = false
@@ -73,9 +77,8 @@ lint-fix = [
     'lint-imports',
 ]
 
-
-# ------------------------------
-# linting
+# -----------------------------------------------------------------------------
+# linting ---------------------------------------------------------------------
 [tool.ruff.lint]
 extend-ignore = [
     "EM101",
@@ -102,19 +105,10 @@ packages = ["odc_commander"]
 strict = true
 implicit_reexport = true
 
-# ------------------------------
-# import linter config and rules
+# -----------------------------------------------------------------------------
+# import linter config and rules ----------------------------------------------
 [tool.importlinter]
 root_packages = [
     "odc_commander",
-    "debug"
 ]
 include_external_packages = true
-
-[[tool.importlinter.contracts]]
-name = "debug tools"
-type = "layers"
-layers = [
-    "odc_commander",
-    "debug",
-]

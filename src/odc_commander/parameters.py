@@ -8,6 +8,7 @@ from odc_commander.commands.basic_params import FloatArrayParam, FloatParam
 # and in the `dynamic_clamp.ino` firmware for
 # correct assignment.
 RUNTIME_PARAMS = FloatArrayParam(
+    "FunctionParameters",
     FloatParam(0.0, "Shunt"),
     FloatParam(1.0, "HCN"),
     FloatParam(2.0, "Na"),

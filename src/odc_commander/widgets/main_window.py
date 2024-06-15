@@ -5,6 +5,8 @@ from pyside_app_core.qt.standard import MainWindow
 from pyside_app_core.qt.widgets.connection_manager import ConnectionManager
 from pyside_app_core.utils.time_ms import SECONDS
 
+from odc_commander.interfaces.controller import ControllerView
+
 
 class OdcMainWindow(MainWindow):
     def __init__(self) -> None:
@@ -41,9 +43,9 @@ class OdcMainWindow(MainWindow):
         with self.menu_bar.menu("View"):
             pass
 
-    def add_controller_tab(self, view: QWidget) -> None:
+    def add_controller_tab(self, view: ControllerView) -> None:
         view.setParent(self)
-        tab_index = self._main_tabs.addTab(view, view.__class__.__name__)
+        tab_index = self._main_tabs.addTab(view, view.TAB_NAME or view.__class__.__name__)
 
         with (
             self.menu_bar.menu("View") as view_menu,
