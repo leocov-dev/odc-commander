@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.12"
 # dependencies = [
 #    "jinja2",
 # ]
@@ -51,6 +51,7 @@ def release(exe_name: str) -> None:
         )
 
         if expected_app_build.exists():
+            DIST_DIR.mkdir(parents=True, exist_ok=True)
             # move from build dir to `dist` dir
             shutil.move(expected_app_build, dist_app_target)
             print(f"Moved app build to {dist_app_target}")
