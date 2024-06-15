@@ -15,9 +15,8 @@ dependencies = [
     "pyside6==6.7.*",
     "cobs==1.*",
     "loguru",
-#    "pyside-app-core==0.3.*",
-    "pyside-app-core @ {root:uri}/../pyside-app-core"
-#    pyside-app-core = {path = "../pyside-app-core"}
+    "pyside-app-core==0.4.*",
+#    "pyside-app-core @ {root:uri}/../pyside-app-core"
 ]
 dynamic = ["version"]
 
