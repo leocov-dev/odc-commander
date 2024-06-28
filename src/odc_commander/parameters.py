@@ -9,12 +9,12 @@ from odc_commander.commands.basic_params import FloatArrayParam, FloatParam
 # correct assignment.
 RUNTIME_PARAMS = FloatArrayParam(
     "FunctionParameters",
-    FloatParam(0.0, "Shunt"),
-    FloatParam(1.0, "HCN"),
-    FloatParam(2.0, "Na"),
-    FloatParam(3.0, "OU_exc_mean"),
-    FloatParam(4.0, "OU_exc_D"),
-    FloatParam(5.0, "OU_inh_mean"),
-    FloatParam(6.0, "OU_inh_D"),
-    FloatParam(7.0, "EPSC"),
+    FloatParam(value=0.0, label="Shunt"),
+    FloatParam(value=1.0, label="HCN"),
+    FloatParam(value=2.0, label="Na"),
+    FloatParam(value=3.0, label="OU_exc_mean"),
+    FloatParam(value=4.0, label="OU_exc_D"),
+    FloatParam(value=5.0, label="OU_inh_mean"),
+    FloatParam(value=6.0, label="OU_inh_D"),
+    FloatParam(value=7.0, label="EPSC"),
 )

@@ -1,7 +1,8 @@
 import struct
-from collections.abc import MutableSequence
+from collections.abc import Iterable, MutableSequence
 from typing import overload, Protocol, TypeVar
-from collections.abc import Iterable
+
+from pydantic import BaseModel, model_validator
 
 from odc_commander.commands.transcoder import Message
 
@@ -19,50 +20,17 @@ class ParamType(Protocol[_V]):
     def label(self) -> str: ...
 
 
-class FloatParam(ParamType[float], Message):
-    def __init__(
-        self,
-        value: float,
-        label: str,
-        unit: str = "",
-        step: float = 0.1,
-        min_value: float = -1000.0,
-        max_value: float = 1000.0,
-    ) -> None:
-        self._value = float(value)
-        self._label = label
-        self._unit = unit
-        self._step = step
-        self._min_value = min_value
-        self._max_value = max_value
+class FloatParam(BaseModel):
+    value: float
+    label: str
+    unit: str = ""
+    step: float = 0.1
+    min_value: float = -1000.0
+    max_value: float = 1000.0
 
-    @property
-    def value(self) -> float:
-        return self._value
-
-    @value.setter
-    def value(self, value: float) -> None:
-        self._value = max(self.min_value, min(self.max_value, float(value)))
-
-    @property
-    def label(self) -> str:
-        return self._label
-
-    @property
-    def unit(self) -> str:
-        return self._unit
-
-    @property
-    def step(self) -> float:
-        return self._step
-
-    @property
-    def min_value(self) -> float:
-        return self._min_value
-
-    @property
-    def max_value(self) -> float:
-        return self._max_value
+    @model_validator(mode="after")  # type: ignore[misc]
+    def _clamp_value(self) -> None:
+        self.value = max(self.min_value, min(self.max_value, float(self.value)))
 
     def encode(self) -> bytes:
         return struct.pack(">f", self.value)

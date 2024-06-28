@@ -16,6 +16,7 @@ dependencies = [
     "pyside6==6.7.*",
     "cobs==1.*",
     "loguru",
+    "pydantic",
     "pyside-app-core==0.4.*",
 #    "pyside-app-core @ {root:uri}/../pyside-app-core"  # TODO: local dev
 ]
@@ -85,6 +86,7 @@ extend-ignore = [
     "EM102",
     "TRY003",
     "I001",
+    "N802",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

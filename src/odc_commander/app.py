@@ -41,7 +41,7 @@ class OdcCommanderApp(BaseApp[OdcMainWindow]):
         self._serial_com.set_port_filter(_port_filter)
 
         # ---
-        self._main_window.add_controller_tab(RuntimeView(controllers.Runtime(RUNTIME_PARAMS)))
+        self._main_window.add_controller_tab(RuntimeView(controllers.Runtime(RUNTIME_PARAMS, self)))
         self._main_window.add_controller_tab(CalibrationInputView(controllers.CalibrationInput()))
         self._main_window.add_controller_tab(CalibrationOutputView(controllers.CalibrationOutput()))
 
