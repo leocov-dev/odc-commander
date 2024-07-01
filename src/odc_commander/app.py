@@ -37,21 +37,40 @@ class OdcCommanderApp(BaseApp[OdcMainWindow]):
         super().__init__()
 
         # ---
+        # serial service
         self._serial_com = SerialService(commands.LegacyTranscoder, parent=self)
         self._serial_com.set_port_filter(_port_filter)
 
         # ---
-        self._main_window.add_controller_tab(RuntimeView(controllers.Runtime(RUNTIME_PARAMS, self)))
-        self._main_window.add_controller_tab(CalibrationInputView(controllers.CalibrationInput()))
-        self._main_window.add_controller_tab(CalibrationOutputView(controllers.CalibrationOutput()))
+        # controllers
+        self._runtime_controller = controllers.Runtime(RUNTIME_PARAMS, parent=self)
+        self._calibration_input_controller = controllers.CalibrationInput(parent=self)
+        self._calibration_output_controller = controllers.CalibrationOutput(parent=self)
 
         # ---
+        # tab views
+        self._main_window.add_controller_tab(RuntimeView(self._runtime_controller))
+        self._main_window.add_controller_tab(CalibrationInputView(self._calibration_input_controller))
+        self._main_window.add_controller_tab(CalibrationOutputView(self._calibration_output_controller))
+
+        # ---
+        # serial data readers
         self._serial_com.register_reader(self._main_window.connection_manager)
+        self._serial_com.register_reader(self._runtime_controller)
+        self._serial_com.register_reader(self._calibration_input_controller)
+        self._serial_com.register_reader(self._calibration_output_controller)
 
         # ---
+        # connection management
         self._main_window.connection_manager.refresh_ports.connect(self._serial_com.scan_for_ports)
         self._main_window.connection_manager.request_connect.connect(self._serial_com.open_connection)
         self._main_window.connection_manager.request_disconnect.connect(self._serial_com.close_connection)
+
+        # ---
+        # sending data
+        self._runtime_controller.send_parameters.connect(self._serial_com.send_data)
+        self._calibration_input_controller.send_command.connect(self._serial_com.send_data)
+        self._calibration_output_controller.send_value.connect(self._serial_com.send_data)
 
     def build_main_window(self) -> OdcMainWindow:
         return OdcMainWindow()

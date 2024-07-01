@@ -32,7 +32,9 @@ class OdcMainWindow(MainWindow):
 
         # -----
         QTimer.singleShot(1 * SECONDS, self._connection_manager.request_port_refresh)
-        self._main_tabs.currentChanged.connect(self.adjustSize)
+
+        # TODO: good idea???
+        # self._main_tabs.currentChanged.connect(self.adjustSize)
 
     @property
     def connection_manager(self) -> ConnectionManager:

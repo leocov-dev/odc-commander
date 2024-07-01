@@ -27,7 +27,7 @@ jobs:
       - name: Check Version Strings
         env:
           TAG: ${{ steps.vars.outputs.tag }}
-        run: pipx run hatch run scripts/validate-version.py
+        run: pipx run hatch run scripts/validate-version.py --check-tag
 
 
   # -------------

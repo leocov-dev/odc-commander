@@ -34,6 +34,8 @@ path = "src/odc_commander/__init__.py"
 # [tool.hatch.metadata]
 # allow-direct-references = true
 
+[tool.hatch.]
+
 # -----------------------------------------------------------------------------
 # default ---------------------------------------------------------------------
 [tool.hatch.envs.default]

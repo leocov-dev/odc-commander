@@ -4,6 +4,7 @@
 #    "jinja2",
 # ]
 # ///
+import argparse
 import platform
 import shutil
 import subprocess
@@ -23,7 +24,7 @@ class ReleaseError(Exception):
     """error in the release process"""
 
 
-def release(exe_name: str) -> None:
+def release(exe_name: str, *, keep_deployment_files: bool = False) -> None:
     print("PySide6 Deploy...")
 
     shutil.rmtree(DIST_DIR, ignore_errors=True)
@@ -46,12 +47,19 @@ def release(exe_name: str) -> None:
         expected_app_build = wd / exe_name
         dist_app_target = DIST_DIR / exe_name
 
+        extra_args = [
+            "--force"
+        ]
+        if keep_deployment_files:
+            extra_args.append("--keep-deployment-files")
+
         subprocess.check_call(
             [
                 "pyside6-deploy",
-                "--force",
+                *extra_args,
                 f'--c={wd / "pysidedeploy.spec"}',
             ],
+            text=True,
         )
 
         if expected_app_build.exists():
@@ -63,7 +71,7 @@ def release(exe_name: str) -> None:
             raise ReleaseError(f"App build not found after deploy process completed. {expected_app_build}")
 
 
-def bundle_macos_dmg(exe_name: str) -> None:
+def bundle_macos_dmg(exe_name: str, *, keep_build_files: bool = False) -> None:
     dmg_name = exe_name.replace(".app", ".dmg")
 
     dmg_target = DIST_DIR / dmg_name
@@ -72,9 +80,11 @@ def bundle_macos_dmg(exe_name: str) -> None:
     with cd("dist"):
         subprocess.check_call(
             ["hdiutil", "create", "-volname", exe_name, "-srcfolder", exe_name, "-ov", "-format", "UDZO", dmg_name],
+            text=True,
         )
 
-    shutil.rmtree(DIST_DIR / exe_name)
+    if not keep_build_files:
+        shutil.rmtree(DIST_DIR / exe_name)
 
 
 def linux_remove_bin_extension(exe_name: str) -> None:
@@ -85,10 +95,16 @@ def linux_remove_bin_extension(exe_name: str) -> None:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("--keep-build-files", action="store_false")
+
+    args = parser.parse_args()
+
     plat = platform.system()
     if plat == "Darwin":
-        release(MACOS_NAME)
-        bundle_macos_dmg(MACOS_NAME)
+        release(MACOS_NAME, keep_deployment_files=args.keep_build_files)
+        bundle_macos_dmg(MACOS_NAME, keep_build_files=args.keep_build_files)
     elif plat == "Windows":
         release(WIN_NAME)
     elif plat == "Linux":
