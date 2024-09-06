@@ -7,5 +7,5 @@ from odc_commander.interfaces.controller import ControllerView
 class CalibrationInputView(ControllerView[CalibrationInput]):
     TAB_NAME = "Calibration - Model Cell"
 
-    def __init__(self, controller: CalibrationInput, parent: QWidget | None = None):  # noqa: ARG002
+    def __init__(self, controller: CalibrationInput, parent: QWidget | None = None):
         super().__init__(controller=controller, parent=parent)

@@ -4,11 +4,13 @@ from PySide6.QtWidgets import (
     QGraphicsView,
     QHBoxLayout,
     QLabel,
-    QLineEdit, QSlider,
+    QLineEdit,
+    QSlider,
     QSpinBox,
     QVBoxLayout,
     QWidget,
 )
+from pyside_app_core import log
 
 from odc_commander.controllers import CalibrationOutput
 from odc_commander.interfaces.controller import ControllerView
@@ -17,7 +19,7 @@ from odc_commander.interfaces.controller import ControllerView
 class CalibrationOutputView(ControllerView[CalibrationOutput]):
     TAB_NAME = "Calibration - Specify Output"
 
-    def __init__(self, controller: CalibrationOutput, parent: QWidget | None = None):  # noqa: ARG002
+    def __init__(self, controller: CalibrationOutput, parent: QWidget | None = None):
         super().__init__(controller, parent=parent)
 
         _ly = QVBoxLayout()
@@ -53,17 +55,16 @@ class CalibrationOutputView(ControllerView[CalibrationOutput]):
         self._slider = QSlider(parent=self)
         _ly.addWidget(self._slider)
 
-        self._slider.setRange(0,4095)
+        self._slider.setRange(0, 4095)
         self._slider.setSingleStep(8)
         self._slider.setValue(2048)
         self._slider.setOrientation(Qt.Orientation.Horizontal)
 
-        # ----
+        # signals ----
         self._val.editingFinished.connect(lambda: self._slider.setValue(self._val.value()))
         self._val.editingFinished.connect(lambda: self._editing_completed(self._val.value()))
         self._slider.valueChanged.connect(self._val.setValue)
         self._slider.valueChanged.connect(self._editing_completed)
 
-    def _editing_completed(self, val: int):
-        print(val)
-
+    def _editing_completed(self, val: int) -> None:
+        log.debug(val)

@@ -1,31 +1,29 @@
-from PySide6.QtCore import QObject, Signal, Slot
-from PySide6.QtSerialPort import QSerialPort, QSerialPortInfo
-from pyside_app_core import log
+from PySide6.QtCore import QObject, Qt, QTimerEvent
 from pyside_app_core.services.serial_service.types import Encodable
 
+from odc_commander.interfaces.controller import Controller, SerialConfig
 
-class CalibrationOutput(QObject):
+
+class CalibrationOutput(Controller[Encodable]):
     """"""
 
-    send_value = Signal(Encodable)
+    def __init__(self, serial_config: SerialConfig, parent: QObject | None = None) -> None:
+        super().__init__(serial_config=serial_config, parent=parent)
 
-    @Slot()
-    def handle_serial_connect(self, com: QSerialPort) -> None:
-        log.debug(f"Connected to serial port {com.portName()}")
+        self._avg_timer = self.startTimer(1000, Qt.TimerType.CoarseTimer)
 
-    @Slot()
-    def handle_serial_disconnect(self) -> None:
-        log.debug("Com port disconnected")
+        self._avg_accumulator: list[tuple[int, int]] = []
 
-    @Slot()
-    def handle_serial_data(self, data: object) -> None:
-        log.debug(f"Received data: {data}")
+    def timerEvent(self, event: QTimerEvent) -> None:
+        if event.timerId() == self._avg_timer:
+            if not self._avg_accumulator:
+                return
 
-    @Slot()
-    def handle_serial_error(self, error: Exception) -> None:
-        log.debug(f"Error received: {error}")
+            last_time, _ = self._avg_accumulator[-1]
 
-    @Slot()
-    def handle_serial_ports(self, ports: list[QSerialPortInfo]) -> None:
-        # ignored
-        pass
+            _keep = []
+            for time, val in self._avg_accumulator:
+                if time + 1000 > last_time:
+                    _keep.append((time, val))
+
+            self._avg_accumulator = _keep

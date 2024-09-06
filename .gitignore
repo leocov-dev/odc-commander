@@ -20,3 +20,8 @@ __pycache__/
 .python-version
 
 pysidedeploy.spec
+
+# compiled firmware
+*.hex
+*.bin
+*.elf

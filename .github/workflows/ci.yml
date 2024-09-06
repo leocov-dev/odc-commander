@@ -13,6 +13,9 @@ permissions:
   contents: read
 
 jobs:
+
+
+  # -------------
   test:
     name: Tests
     runs-on: ubuntu-latest
@@ -24,6 +27,8 @@ jobs:
       - name: Lint Checks
         run: pipx run hatch fmt --check
 
+
+  # -------------
   build:
     name: Build Smoke Test (${{ matrix.os }})
     needs: [ test ]

@@ -47,9 +47,7 @@ def release(exe_name: str, *, keep_deployment_files: bool = False) -> None:
         expected_app_build = wd / exe_name
         dist_app_target = DIST_DIR / exe_name
 
-        extra_args = [
-            "--force"
-        ]
+        extra_args = ["--force"]
         if keep_deployment_files:
             extra_args.append("--keep-deployment-files")
 

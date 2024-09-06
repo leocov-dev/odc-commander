@@ -1,4 +1,4 @@
-from pyside_app_core.qt.standard.about_dialog import AboutDialog
+from pyside_app_core.ui.standard.about_dialog import AboutDialog
 
 
 class AboutOdcWindow(AboutDialog):

@@ -13,12 +13,12 @@ readme = "README.md"
 license-files = { paths = ["LICENSE"] }
 requires-python = ">=3.12"
 dependencies = [
-    "pyside6==6.7.*",
-    "cobs==1.*",
+    "pyside6>=6.7.2",
+    "cobs>=1.2.1",
     "loguru",
     "pydantic",
-    "pyside-app-core==0.4.*",
-#    "pyside-app-core @ {root:uri}/../pyside-app-core"  # TODO: local dev
+    "pyside-app-core>=0.8.1",
+#    "pyside-app-core@file:///{root}/../pyside-app-core"  # TODO: local dev
 ]
 dynamic = ["version"]
 
@@ -30,22 +30,30 @@ dynamic = ["version"]
 [tool.hatch.version]
 path = "src/odc_commander/__init__.py"
 
-# TODO: local dev
-# [tool.hatch.metadata]
-# allow-direct-references = true
-
-[tool.hatch.]
+ [tool.hatch.metadata]
+ allow-direct-references = true
 
 # -----------------------------------------------------------------------------
 # default ---------------------------------------------------------------------
 [tool.hatch.envs.default]
+dev-mode = true
 type = "virtual"
 path = ".venv"
+extra-dependencies = [
+    "mkdocs"
+]
 
 [tool.hatch.envs.default.scripts]
-odc-commander = "python \"src/ODC Commander.py\""
+odc-commander = [
+    "hatch run compile-rcc",
+    "python \"src/ODC Commander.py\"",
+]
 release-build = "hatch run scripts/release-build.py"
-compile-rcc = "hatch run scripts/compile-rcc.py"
+compile-rcc = [
+    "hatch run mkdocs build -f \"{root}/mkdocs.yml\"",
+    "hatch run pyside-app-core-compile-rcc \"{root}/src/odc_commander\" --extra-resource-root \"{root}/src/resources/odc\" --debug",
+]
+compile-firmware = "hatch run python -m odc_commander.arduino"
 
 # -----------------------------------------------------------------------------
 # format/linting --------------------------------------------------------------
@@ -89,12 +97,16 @@ extend-ignore = [
     "TRY003",
     "I001",
     "N802",
+    "FBT001",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]
 "__init__.py" = [
     "F401",
     "TID252",
+]
+"__main__.py" = [
+    "T201",
 ]
 "scripts/*" = [
     "S607",

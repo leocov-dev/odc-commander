@@ -24,8 +24,11 @@ class Result(Decodable):
     def decode(cls, data: bytes) -> "Result":
         return cls(data)
 
+    def __repr__(self) -> str:
+        return str(self)
+
     def __str__(self) -> str:
-        return f"<{self.__class__.__name__}>"
+        return f"<{self.__class__.__name__}>({self._raw_data!r})"
 
 
 class CobsTranscoder(TranscoderInterface):
@@ -53,12 +56,14 @@ class CobsTranscoder(TranscoderInterface):
 class LegacyTranscoder(TranscoderInterface):
     """legacy string transcoder"""
 
+    SEP = b"\r\n"
+
     @classmethod
     def process_buffer(cls, buffer: bytearray) -> ChunkedData:
-        if b"\n" in buffer:
+        if cls.SEP in buffer:
             chunks: list[bytearray]
             remainder: bytearray
-            *chunks, remainder = buffer.split(b"\n")
+            *chunks, remainder = buffer.split(cls.SEP)
             return chunks, remainder
 
         return [], None

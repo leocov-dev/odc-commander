@@ -16,7 +16,7 @@ class RuntimeView(ControllerView[Runtime]):
     TAB_NAME = "Runtime Control"
 
     def __init__(self, controller: Runtime, parent: QWidget | None = None) -> None:
-        super().__init__(controller, parent=parent)
+        super().__init__(controller=controller, parent=parent)
 
         self._controller = controller
         # self.setMinimumHeight(500)
