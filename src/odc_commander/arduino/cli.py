@@ -19,9 +19,9 @@ def set_cli_exe(exe: Path) -> None:
 
     try:
         arduino_cli("version")
-    except:
+    except Exception as e:
         __cli_exe = None
-        raise ODCArduinoCliError(f"Invalid Arduino CLI check: {exe}")
+        raise ODCArduinoCliError(f"Invalid Arduino CLI check: {exe}") from e
 
 
 def _cli_exe() -> Path:
@@ -33,7 +33,7 @@ def _cli_exe() -> Path:
 def arduino_cli(cmd: str, *args: str) -> dict[str, Any]:
     try:
         result = subprocess.check_output(
-            [  # noqa: S607
+            [
                 _cli_exe(),
                 cmd,
                 "--format",

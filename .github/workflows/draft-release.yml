@@ -47,11 +47,8 @@ jobs:
         with:
           python-version-file: 'pyproject.toml'
 
-      - name: Compile RCC
-        run: pipx run hatch run compile-rcc
-
       - name: Release Build
-        run: pipx run hatch run release-build
+        run: pipx run hatch build -t pyside-app
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4

@@ -36,24 +36,14 @@ Run the app
 hatch run odc-commander
 ```
 
-Rebuild `resources.rcc` (only required if changing something in `src/resources`)
-```shell
-hatch run compile-rcc
-```
-
 Create a local release for your operating system. 
 Cross compiling to a packaged binary is not supported.
 The build is placed in the `dist` directory.
 ```shell
-hatch run release-build
+hatch build -t pyside-app
 ```
 
 Run linting/formatting. Will auto-format code and run formatting and type checking validations.
 ```shell
 hatch fmt
-```
-
-Version up the code. This will write the variable `__version__` in `src/odc_commander/__init__.py`
-```shell
-hatch version 1.2.3
 ```

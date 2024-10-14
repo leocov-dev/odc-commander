@@ -1,5 +1,10 @@
 [build-system]
-requires = ["hatchling"]
+requires = [
+    "hatchling",
+    #    "pyside-app-core>=0.10.0",
+    "pyside-app-core @ file:///Users/leo/src/pyside-app-core",
+    "hatch-vcs",
+]
 build-backend = "hatchling.build"
 
 # -----------------------------------------------------------------------------
@@ -17,8 +22,7 @@ dependencies = [
     "cobs>=1.2.1",
     "loguru",
     "pydantic",
-    "pyside-app-core>=0.8.1",
-#    "pyside-app-core@file:///{root}/../pyside-app-core"  # TODO: local dev
+    #    "pyside-app-core>=0.10.0",
 ]
 dynamic = ["version"]
 
@@ -28,10 +32,39 @@ dynamic = ["version"]
 "Releases" = "https://github.com/leocov-dev/odc-commander/releases"
 
 [tool.hatch.version]
-path = "src/odc_commander/__init__.py"
+source = "vcs"
 
- [tool.hatch.metadata]
- allow-direct-references = true
+[tool.hatch.build.hooks.vcs]
+version-file = "src/odc_commander/_version.py"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+
+# -----------------------------------------------------------------------------
+# build -----------------------------------------------------------------------
+
+[tool.hatch.build.hooks.custom]
+arduino-cli = true
+
+[tool.hatch.build.hooks.pyside-app]
+resource-target = "src/data"
+extra-resource-roots = [
+    "src/resources/odc",
+]
+
+[tool.hatch.build.targets.pyside-app]
+icon = "src/resources/odc/app/icon.png"
+spec-root = "src"
+entrypoint = "src/ODC Commander.py"
+extra-data-dirs = [
+    "./data=data",
+    "./vendor=vendor",
+]
+extra-python-packages = [
+    "cobs",
+    "pydantic",
+]
 
 # -----------------------------------------------------------------------------
 # default ---------------------------------------------------------------------
@@ -39,19 +72,15 @@ path = "src/odc_commander/__init__.py"
 dev-mode = true
 type = "virtual"
 path = ".venv"
-extra-dependencies = [
-    "mkdocs"
+post-install-commands = [
+    "hatch build --ext",
+    "pip install -e {root}/../pyside-app-core",  # TODO: remove localdev
 ]
 
 [tool.hatch.envs.default.scripts]
 odc-commander = [
-    "hatch run compile-rcc",
-    "python \"src/ODC Commander.py\"",
-]
-release-build = "hatch run scripts/release-build.py"
-compile-rcc = [
-    "hatch run mkdocs build -f \"{root}/mkdocs.yml\"",
-    "hatch run pyside-app-core-compile-rcc \"{root}/src/odc_commander\" --extra-resource-root \"{root}/src/resources/odc\" --debug",
+    "hatch build --ext",
+    "hatch run python \"src/ODC Commander.py\" {args}",
 ]
 compile-firmware = "hatch run python -m odc_commander.arduino"
 
@@ -98,6 +127,7 @@ extend-ignore = [
     "I001",
     "N802",
     "FBT001",
+    "PLW0603",
 ]
 
 [tool.ruff.lint.extend-per-file-ignores]

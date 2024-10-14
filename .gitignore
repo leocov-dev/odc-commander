@@ -6,6 +6,8 @@ dist/
 deployment/
 *.egg-info/
 
+vendor/
+
 *.pyc
 
 venv/
@@ -20,6 +22,10 @@ __pycache__/
 .python-version
 
 pysidedeploy.spec
+
+resources.rcc
+_pysidedeploy.spec
+_version.py
 
 # compiled firmware
 *.hex

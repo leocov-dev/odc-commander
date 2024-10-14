@@ -1,6 +1,6 @@
 import struct
 from collections.abc import Iterable, MutableSequence
-from typing import overload, Protocol, TypeVar
+from typing import overload, Protocol, TypeVar, Self
 
 from pydantic import BaseModel, model_validator
 
@@ -28,9 +28,10 @@ class FloatParam(BaseModel):
     min_value: float = -1000.0
     max_value: float = 1000.0
 
-    @model_validator(mode="after")  # type: ignore[misc]
-    def _clamp_value(self) -> None:
+    @model_validator(mode="after")
+    def _clamp_value(self) -> Self:
         self.value = max(self.min_value, min(self.max_value, float(self.value)))
+        return self
 
     def encode(self) -> bytes:
         return struct.pack(">f", self.value)

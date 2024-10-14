@@ -1,16 +1,20 @@
 from pathlib import Path
 
+from loguru import logger
 from PySide6.QtSerialPort import QSerialPortInfo
-from pyside_app_core import log
-from pyside_app_core.services.preferences_service import PreferencesService
+from pyside_app_core.app.application_service import AppMetadata
+from pyside_app_core.errors import excepthook
+from pyside_app_core.log import configure_get_logger_func
+from pyside_app_core.services.preferences_service import PreferencesService, PrefGroup, PrefItem, PrefSection
 from pyside_app_core.services.serial_service import SerialService
-from pyside_app_core.types.preferences import FilePref, Pref, PrefsGroup, PrefsValue
+from pyside_app_core.ui.prefs import PathWithPlaceholder
+from pyside_app_core.ui.prefs.preferences_utility_widgets import ComboItemWidget
+from pyside_app_core.ui.standard.error_dialog import ErrorDialog
 from pyside_app_core.ui.widgets.base_app import BaseApp
 from pyside_app_core.utils.signals import OneToManySwitcher
 
-from odc_commander import commands, controllers, ROOT
+from odc_commander import __version__, commands, controllers, DATA_DIR
 from odc_commander.arduino.sketch import get_sketch
-from odc_commander.arduino import cli as arduino_cli
 from odc_commander.arduino.vendor_map import VENDOR_MAP
 from odc_commander.interfaces.controller import SerialConfig
 from odc_commander.parameters import RUNTIME_PARAMS
@@ -19,7 +23,26 @@ from odc_commander.widgets.controller_views.calibration_output_view import Calib
 from odc_commander.widgets.controller_views.runtime_view import RuntimeView
 from odc_commander.widgets.main_window import OdcMainWindow
 
+# ------------------------------------------------------------------------------
+configure_get_logger_func(lambda: logger)
 
+excepthook.install_excepthook(ErrorDialog)
+
+# ------------------------------------------------------------------------------
+AppMetadata.init(
+    "com.odc.commander",
+    "ODC Commander",
+    __version__,
+    icon_resource=":/odc/app/icon.png",
+    help_url="https://github.com/leocov-dev/odc-commander",
+    bug_report_url="https://github.com/leocov-dev/odc-commander/issues",
+    oss_licenses=[
+        ":/odc/licenses/arduino-cli.md"
+    ],
+)
+
+
+# ------------------------------------------------------------------------------
 def _port_filter(ports: list[QSerialPortInfo]) -> list[QSerialPortInfo]:
     filtered = []
 
@@ -48,22 +71,49 @@ class OdcCommanderApp(BaseApp[OdcMainWindow]):
     """Main App"""
 
     def __init__(self) -> None:
-        super().__init__(resources_rcc=ROOT / "resources.rcc")
+        super().__init__(resources_rcc=DATA_DIR / "resources.rcc")
 
-        PreferencesService.pref_changed.connect(self._on_pref_changed)
-        PreferencesService.add_group(
-            PrefsGroup(
-                "app", "Application",
+        PreferencesService.add_prefs(
+            PrefSection(
+                "Application",
+                "app",
                 [
-                    Pref("sel-last-device", "Auto Select Last Device", True),
-                    Pref("conn-last-device", "Auto Connect Last Device", False),
-                    FilePref("arduino-cli-path", "Arduino CLI Executable Path", Path()),
+                    PrefGroup(
+                        "Connections",
+                        "conn",
+                        [
+                            PrefItem.new("Auto Select Last Device", "sel-last-device", True),
+                            PrefItem.new("Auto Connect Last Device", "conn-last-device", False),
+                        ],
+                    ),
+                    PrefGroup(
+                        "Arduino",
+                        "arduino",
+                        [
+                            PrefItem.new(
+                                "Arduino CLI Path",
+                                "cli-path",
+                                Path(),
+                                widget_class=PathWithPlaceholder(
+                                    placeholder_text="bundled arduino-cli",
+                                ),
+                            ),
+                            PrefItem.new("Auto Connect Last Device", "conn-last-device", False),
+                        ],
+                    ),
                 ],
             ),
-            PrefsGroup(
-                "dev", "Developer",
+            PrefGroup(
+                "Developer",
+                "dev",
                 [
-                    Pref("debug-mode", "Debug Mode", False),
+                    PrefItem.new("Debug Mode", "debug", False),
+                    PrefItem.new(
+                        "Log Level",
+                        "log-level",
+                        2,
+                        widget_class=ComboItemWidget(["ERROR", "WARNING", "INFO", "DEBUG"]),
+                    ),
                 ],
             ),
         )
@@ -145,8 +195,3 @@ class OdcCommanderApp(BaseApp[OdcMainWindow]):
 
     def build_main_window(self) -> OdcMainWindow:
         return OdcMainWindow()
-
-    def _on_pref_changed(self, name: str, value: PrefsValue) -> None:
-        log.debug(f"pref_changed: {name} -> {value}")
-        if name == "app.arduino-cli-path":
-            arduino_cli.set_cli_exe(value)

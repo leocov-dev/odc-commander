@@ -1,15 +1,15 @@
 from pathlib import Path
 from typing import Any, cast
 
-from PySide6.QtCore import QTimer, QUrl, Signal
+from PySide6.QtCore import QSize, QTimer, Signal
 from PySide6.QtGui import QAction
 from PySide6.QtSerialPort import QSerialPortInfo
-from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 from pyside_app_core.app.application_service import AppMetadata
 from pyside_app_core.services.serial_service import SerialService
 from pyside_app_core.ui.standard.main_window import MainToolbarWindow
 from pyside_app_core.ui.widgets.connection_manager import ConnectionManager, PortData
+from pyside_app_core.ui.widgets.core_icon import CoreIcon
 from pyside_app_core.ui.widgets.layout import HLine
 from pyside_app_core.ui.widgets.preferences_manager import PreferencesManager
 from pyside_app_core.utils.time_ms import SECONDS
@@ -38,21 +38,16 @@ class OdcMainWindow(MainToolbarWindow):
 
     def __init__(self) -> None:
         super().__init__()
+        self.setWindowTitle(AppMetadata.name)
 
         self._serial_com: SerialService | None = None
 
-        self.setMinimumSize(420, 128)
+        self.setMinimumSize(640, 200)
 
         self.statusBar().showMessage(f"v{AppMetadata.version}")
 
         central = QWidget(self)
         self.setCentralWidget(central)
-
-        self.tool_bar.addAction(self._prefs_action)
-
-        self._help = QWebEngineView()
-        self._help.load(QUrl("qrc:/odc/help/index.html"))
-        self._help.setHidden(True)
 
         _ly = QVBoxLayout()
         _ly.setSpacing(10)
@@ -94,10 +89,6 @@ class OdcMainWindow(MainToolbarWindow):
         self._uploader.about_to_upload.connect(self._about_to_upload)
         self._uploader.upload_complete.connect(self._upload_complete)
 
-        # TODO: good idea or bad???
-        # self._main_tabs.currentChanged.connect(self.adjustSize)
-
-        # -----
 
     @property
     def connection_manager(self) -> ConnectionManager:
@@ -140,7 +131,9 @@ class OdcMainWindow(MainToolbarWindow):
         tab_data: SketchData | dict[Any, Any] = self._tab_sketch_map.get(tab_index, {})
 
         self._uploader.set_current_data(
-            tab_data.get("sketch", None), tab_data.get("uploader_btn_text", ""), tab_data.get("readonly", False)
+            tab_data.get("sketch", None),
+            tab_data.get("uploader_btn_text", ""),
+            tab_data.get("readonly", False),
         )
 
     def current_tab_index(self) -> int:
@@ -175,6 +168,9 @@ class OdcMainWindow(MainToolbarWindow):
         # file --------
         with self._menu_bar.menu("File") as file_menu:
             self._prefs_action = QAction("Preferences", self)
+            self._prefs_action.setIcon(
+                CoreIcon(":/core/iconoir/settings.svg")
+            )
             self._prefs_action.setMenuRole(QAction.MenuRole.PreferencesRole)
             self._prefs_action.triggered.connect(PreferencesManager.open)
             file_menu.addAction(self._prefs_action)
@@ -192,11 +188,30 @@ class OdcMainWindow(MainToolbarWindow):
             pass
 
         # help ----------
-        with (
-            self._menu_bar.menu("Help") as help_menu,
-            help_menu.action("Documentation") as about_action,
-        ):
-            about_action.triggered.connect(self._show_help)
+        # with (
+        #     self._menu_bar.menu("Help") as help_menu,
+        #     help_menu.action("Documentation") as about_action,
+        # ):
+        #     about_action.triggered.connect(self._show_help)
 
-    def _show_help(self) -> None:
-        self._help.show()
+    def _build_toolbar(self) -> None:
+        self.tool_bar.setIconSize(QSize(20, 20))
+        self.tool_bar.setSpacing(5)
+
+        self.tool_bar.add_spacer(5)
+
+        with self.tool_bar.add_action(
+                "Save Project",
+            CoreIcon(":/core/iconoir/floppy-disk.svg")
+        ) as save_action:
+            pass
+
+        with self.tool_bar.add_action(
+                "Load Project",
+                CoreIcon(":/odc/iconoir/folder.svg")
+        ) as load_action:
+            pass
+
+        self.tool_bar.add_stretch()
+        self.tool_bar.addAction(self._prefs_action)
+        self.tool_bar.add_spacer(5)

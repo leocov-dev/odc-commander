@@ -1,6 +1,9 @@
-from pathlib import Path
 from typing import Literal
 
-FIRMWARE_ROOT = Path(__file__).parent.parent.parent / "odc_firmware"
+from odc_commander import DATA_DIR, ROOT_DIR
+
+FIRMWARE_ROOT = DATA_DIR / "firmware"
 
 BinType = Literal["bin", "elf", "hex"]
+
+VENDOR_ROOT = ROOT_DIR / "vendor"
