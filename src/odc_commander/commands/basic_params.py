@@ -1,8 +1,9 @@
 import struct
 from collections.abc import Iterable, MutableSequence
-from typing import overload, Protocol, TypeVar, Self
+from typing import Any, overload, Protocol, TypeVar, Self
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, Field, model_validator
+from pyside_app_core.constants import DATA_ENCODING_ENDIAN, DATA_STRUCT_ENDIAN
 
 from odc_commander.commands.transcoder import Message
 
@@ -21,28 +22,45 @@ class ParamType(Protocol[_V]):
 
 
 class FloatParam(BaseModel):
-    value: float
+    value: float = Field()
+    default: float
     label: str
     unit: str = ""
     step: float = 0.1
-    min_value: float = -1000.0
-    max_value: float = 1000.0
+    min_value: float
+    max_value: float
+    decimals: int = 2
+
+    @model_validator(mode="before")
+    @classmethod
+    def _apply_default(cls, data: dict[str, Any]):
+        if "value" not in data:
+            data["value"] = data.get("default", 0.0)
+        if "min_value" not in data:
+            data["min_value"] = data.get("default", 0.0)
+        if "max_value" not in data:
+            data["max_value"] = data.get("default", 10.0) * 2
+
+        return data
 
     @model_validator(mode="after")
     def _clamp_value(self) -> Self:
-        self.value = max(self.min_value, min(self.max_value, float(self.value)))
+        self.value = max(self.min_value, min(self.max_value, self.value))
+        self.default = max(self.min_value, min(self.max_value, self.default))
         return self
+
+    def reset(self) -> None:
+        self.value = self.default
 
     def encode(self) -> bytes:
         return struct.pack(">f", self.value)
 
     def __str__(self) -> str:
-        return f"<{self.__class__.__name__}: {self.value:10.6f}>"
+        return f"<{self.__class__.__name__}: {super().__str__()}>"
 
 
 class FloatArrayParam(ParamType[list[float]], Message, MutableSequence[FloatParam]):
-    def __init__(self, label: str, *floats: FloatParam):
-        self._label = label
+    def __init__(self, *floats: FloatParam):
         self._floats = list(floats or ())
 
     @overload
@@ -97,8 +115,8 @@ class FloatArrayParam(ParamType[list[float]], Message, MutableSequence[FloatPara
 
     def encode(self) -> bytes:
         fmt = "f" * len(self.params)
-        return struct.pack(f">{fmt}", *self.value)
+        return struct.pack(f"{DATA_STRUCT_ENDIAN}{fmt}", *self.value)
 
     def __str__(self) -> str:
-        str_vals = [f"{v:10.6f}" for v in self.value]
-        return f"<{self.__class__.__name__}: [{', '.join(str_vals)}]>"
+        str_vals = [f"{v:.6f}" for v in self.value]
+        return f"<{self.__class__.__name__}: [{', '.join(str_vals)}]> {self.encode()}"

@@ -1,12 +1,24 @@
 import json
+import platform
 import subprocess
 from json import JSONDecodeError
 from pathlib import Path
 from typing import Any, cast
 
+from odc_commander import VENDOR_DIR
 from odc_commander.arduino.errors import ODCArduinoCliError
+from pyside_app_core import log
 
-__cli_exe: Path | None = None
+
+def _default_cli() -> Path | None:
+    match platform.system():
+        case "Windows":
+            return VENDOR_DIR / "arduino-cli.exe"
+        case _:
+            return VENDOR_DIR / "arduino-cli"
+
+
+__cli_exe: Path | None = _default_cli()
 
 
 def set_cli_exe(exe: Path) -> None:
@@ -25,7 +37,8 @@ def set_cli_exe(exe: Path) -> None:
 
 
 def _cli_exe() -> Path:
-    if __cli_exe is None:
+    log.debug(f"arduino-cli: {__cli_exe}")
+    if not __cli_exe or (not __cli_exe.is_file() and not __cli_exe.exists()):
         raise ODCArduinoCliError("arduino-cli path is not set")
     return __cli_exe
 

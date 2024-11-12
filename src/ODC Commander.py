@@ -11,4 +11,4 @@ if __name__ == "__main__":
 
     from odc_commander.app import OdcCommanderApp
 
-    OdcCommanderApp().launch()
+    OdcCommanderApp(debug=args.debug).launch()

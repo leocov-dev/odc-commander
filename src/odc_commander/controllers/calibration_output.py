@@ -1,14 +1,21 @@
-from PySide6.QtCore import QObject, Qt, QTimerEvent
-from pyside_app_core.services.serial_service.types import Encodable
+from PySide6.QtCore import QObject, Qt, QTimerEvent, Signal
+from pyside_app_core.services.serial_service.types import Encodable, TranscoderInterface
 
-from odc_commander.interfaces.controller import Controller, SerialConfig
+from odc_commander.interfaces.controller import SerialConfig, SwitchedController
+from odc_commander.interfaces.project.v1 import OutputCalibrationComponentData
 
 
-class CalibrationOutput(Controller[Encodable]):
-    """"""
+class CalibrationOutput(SwitchedController[Encodable]):
+    unsaved_changes = Signal()
 
-    def __init__(self, serial_config: SerialConfig, parent: QObject | None = None) -> None:
-        super().__init__(serial_config=serial_config, parent=parent)
+    component_type = "calibration_output"
+
+    def __init__(self, serial_config: SerialConfig, transcoder: type[TranscoderInterface], *, parent: QObject | None = None) -> None:
+        super().__init__(
+            serial_config=serial_config,
+            transcoder=transcoder,
+            parent=parent,
+        )
 
         self._avg_timer = self.startTimer(1000, Qt.TimerType.CoarseTimer)
 
@@ -27,3 +34,14 @@ class CalibrationOutput(Controller[Encodable]):
                     _keep.append((time, val))
 
             self._avg_accumulator = _keep
+
+    def serialize(self) -> OutputCalibrationComponentData:
+        return OutputCalibrationComponentData(
+            component_type=self.component_type,
+        )
+
+    def deserialize(self, data: OutputCalibrationComponentData) -> None:
+        pass
+
+    def restore_defaults(self) -> None:
+        pass

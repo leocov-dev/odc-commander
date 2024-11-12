@@ -3,7 +3,7 @@ from typing import NamedTuple, TypedDict
 
 from PySide6.QtCore import QTimer, Signal
 from PySide6.QtSerialPort import QSerialPortInfo
-from PySide6.QtWidgets import QPushButton, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFileDialog, QPushButton, QVBoxLayout, QWidget
 from pyside_app_core import log
 from pyside_app_core.types.file_picker import FileConfig
 from pyside_app_core.ui.widgets.file_picker import FilePicker
@@ -56,9 +56,9 @@ class ArduinoUploader(QWidget):
             heading="Firmware",
             config=FileConfig(
                 caption="Select Arduino sketch file or binary",
-                selection_filter="Arduino sketch file (*.ino, *.bin, *.hex, *.elf)",
+                selection_filter="Arduino sketch file (*.ino *.bin *.hex *.elf)",
                 starting_directory=None,
-                options=None,
+                options=QFileDialog.Option.ReadOnly,
             ),
             truncate_path=1,
             parent=self,

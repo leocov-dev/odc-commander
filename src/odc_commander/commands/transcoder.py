@@ -1,6 +1,8 @@
-from typing import cast
+import struct
+from typing import cast, Self
 
 from cobs import cobs  # type: ignore[import-untyped]
+from pyside_app_core.constants import DATA_STRUCT_ENDIAN
 from pyside_app_core.services.serial_service.types import ChunkedData, Decodable, Encodable, TranscoderInterface
 
 
@@ -53,6 +55,27 @@ class CobsTranscoder(TranscoderInterface):
         return Result.decode(cobs.decode(raw))
 
 
+class FloatResult(Decodable):
+    """"""
+
+    @property
+    def value(self) -> float:
+        return self._raw_data
+
+    def __init__(self, data: float):
+        self._raw_data = data
+
+    @classmethod
+    def decode(cls, data: bytes) -> Self:
+        return cls(float(data))
+
+    def __repr__(self) -> str:
+        return str(self)
+
+    def __str__(self) -> str:
+        return f"<{self.__class__.__name__}>({self.value})"
+
+
 class LegacyTranscoder(TranscoderInterface):
     """legacy string transcoder"""
 
@@ -73,5 +96,5 @@ class LegacyTranscoder(TranscoderInterface):
         return data.encode()
 
     @classmethod
-    def decode(cls, raw: bytearray) -> Result:
-        return Result.decode(raw)
+    def decode(cls, raw: bytearray) -> FloatResult:
+        return FloatResult.decode(raw)

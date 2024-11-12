@@ -5,22 +5,27 @@ from PySide6.QtSerialPort import QSerialPort, QSerialPortInfo
 from PySide6.QtWidgets import QWidget
 from pyside_app_core import log
 from pyside_app_core.services.serial_service import SerialService
-from pyside_app_core.services.serial_service.types import Encodable
+from pyside_app_core.services.serial_service.types import Encodable, TranscoderInterface
 from pyside_app_core.utils.signals import OneToManySwitcher
 
-DD = TypeVar("DD", bound=Encodable)
+_D = TypeVar("_D", bound=Encodable)
 
 
 class SerialConfig(NamedTuple):
     com: SerialService
-    switcher: OneToManySwitcher
+    com_data: OneToManySwitcher
 
 
-class Controller(QObject, Generic[DD]):
+class Controller(QObject, Generic[_D]):
     connected = Signal(QSerialPort)
     disconnected = Signal()
 
-    def __init__(self, serial_config: SerialConfig, parent: QObject | None = None) -> None:
+    def __init__(
+        self,
+        serial_config: SerialConfig,
+        *,
+        parent: QObject | None = None,
+    ) -> None:
         super().__init__(parent=parent)
 
         self._serial = serial_config
@@ -29,7 +34,7 @@ class Controller(QObject, Generic[DD]):
     def serial_com(self) -> SerialService:
         return self._serial.com
 
-    def send(self, value: DD) -> None:
+    def send(self, value: _D) -> None:
         self.serial_com.send_data(value)
 
     @Slot()
@@ -55,13 +60,33 @@ class Controller(QObject, Generic[DD]):
         # ignored
         pass
 
-    def as_partial_reader(self) -> int:
+
+class SwitchedController(Controller[_D]):
+
+    @property
+    def switch_index(self) -> int:
+        return self._switch_index
+
+    def __init__(
+        self,
+        serial_config: SerialConfig,
+        transcoder: type[TranscoderInterface],
+        *,
+        parent: QObject | None = None,
+    ) -> None:
+        super().__init__(serial_config, parent=parent)
+
+        self._transcoder: type[TranscoderInterface] = transcoder
+
         self.serial_com.com_connect.connect(self.handle_serial_connect)
         self.serial_com.com_disconnect.connect(self.handle_serial_disconnect)
         self.serial_com.com_ports.connect(self.handle_serial_ports)
         self.serial_com.com_error.connect(self.handle_serial_error)
 
-        return self._serial.switcher.connect_switched(self.handle_serial_data)
+        self._switch_index = self._serial.com_data.connect_switched(self.handle_serial_data)
+
+    def activated(self):
+        self.serial_com.set_transcoder(self._transcoder)
 
 
 CC = TypeVar("CC", bound=Controller[Encodable])

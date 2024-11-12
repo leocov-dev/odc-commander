@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "hatchling",
-    #    "pyside-app-core>=0.10.0",
+#    "pyside-app-core>=0.11.0",
     "pyside-app-core @ file:///Users/leo/src/pyside-app-core",
     "hatch-vcs",
 ]
@@ -22,7 +22,7 @@ dependencies = [
     "cobs>=1.2.1",
     "loguru",
     "pydantic",
-    #    "pyside-app-core>=0.10.0",
+#    "pyside-app-core>=0.11.0",
 ]
 dynamic = ["version"]
 
@@ -98,6 +98,7 @@ extra-dependencies = [
 
 [tool.hatch.envs.hatch-static-analysis.env-vars]
 PYTHONPATH = "{root}/src:{env:PYTHONPATH:}"
+MYPY_CACHE_DIR = "{root}/.mypy_cache"
 
 [tool.hatch.envs.hatch-static-analysis.scripts]
 format-check = [

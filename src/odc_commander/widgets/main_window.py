@@ -2,21 +2,23 @@ from pathlib import Path
 from typing import Any, cast
 
 from PySide6.QtCore import QSize, QTimer, Signal
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QKeySequence, Qt
 from PySide6.QtSerialPort import QSerialPortInfo
-from PySide6.QtWidgets import QTabWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QFileDialog, QTabWidget, QVBoxLayout, QWidget
+from pyside_app_core import log
 from pyside_app_core.app.application_service import AppMetadata
 from pyside_app_core.services.serial_service import SerialService
 from pyside_app_core.ui.standard.main_window import MainToolbarWindow
 from pyside_app_core.ui.widgets.connection_manager import ConnectionManager, PortData
 from pyside_app_core.ui.widgets.core_icon import CoreIcon
 from pyside_app_core.ui.widgets.layout import HLine
-from pyside_app_core.ui.widgets.preferences_manager import PreferencesManager
+from pyside_app_core.ui.widgets.preferences_manager import PreferencesDialog
+from pyside_app_core.utils.cursor import set_cursor
 from pyside_app_core.utils.time_ms import SECONDS
 
 from odc_commander.arduino.uploader import ArduinoUploader, SketchData, SketchMap
 from odc_commander.arduino.vendor_map import ProductData, ProductMap, VENDOR_MAP, VendorData
-from odc_commander.interfaces.controller import ControllerView
+from odc_commander.interfaces.controller import Controller, ControllerView, SwitchedController
 
 
 def _port_data_mapper(port_info: QSerialPortInfo) -> PortData:
@@ -35,6 +37,11 @@ def _port_data_mapper(port_info: QSerialPortInfo) -> PortData:
 class OdcMainWindow(MainToolbarWindow):
     tab_changed = Signal(int)
     debug_mode = Signal(bool)
+
+    request_new = Signal()
+    request_save = Signal()
+    request_save_as = Signal(Path)
+    request_load = Signal(Path)
 
     def __init__(self) -> None:
         super().__init__()
@@ -89,7 +96,6 @@ class OdcMainWindow(MainToolbarWindow):
         self._uploader.about_to_upload.connect(self._about_to_upload)
         self._uploader.upload_complete.connect(self._upload_complete)
 
-
     @property
     def connection_manager(self) -> ConnectionManager:
         return self._connection_manager
@@ -139,6 +145,10 @@ class OdcMainWindow(MainToolbarWindow):
     def current_tab_index(self) -> int:
         return self._main_tabs.currentIndex()
 
+    def tab_by_index(self, index: int) -> SwitchedController:
+        view = cast(ControllerView, self._main_tabs.widget(index))
+        return view.controller
+
     def _port_changed(self, port_info: QSerialPortInfo | None, board: str) -> None:
         self._uploader.setEnabled(port_info is not None)
         self._uploader.set_active_port(port_info, board)
@@ -165,28 +175,38 @@ class OdcMainWindow(MainToolbarWindow):
 
     def _build_menus(self) -> None:
         # init menus in correct order
+
+        # ----------------------------------------------------------------------
         # file --------
         with self._menu_bar.menu("File") as file_menu:
-            self._prefs_action = QAction("Preferences", self)
-            self._prefs_action.setIcon(
-                CoreIcon(":/core/iconoir/settings.svg")
-            )
-            self._prefs_action.setMenuRole(QAction.MenuRole.PreferencesRole)
-            self._prefs_action.triggered.connect(PreferencesManager.open)
-            file_menu.addAction(self._prefs_action)
+            with file_menu.action("Preferences...", CoreIcon(":/core/iconoir/settings.svg")) as self._prefs_action:
+                self._prefs_action.setMenuRole(QAction.MenuRole.PreferencesRole)
+                self._prefs_action.triggered.connect(lambda: self.show_app_modal_dialog(PreferencesDialog()))
 
+            with file_menu.action("New", CoreIcon(":/core/iconoir/page-plus-in.svg")) as self._new_action:
+                self._new_action.triggered.connect(lambda: self.request_new.emit())
+                self._new_action.setShortcut(QKeySequence.StandardKey.New)
+            with file_menu.action("Open...", CoreIcon(":/core/iconoir/folder.svg")) as self._open_action:
+                self._open_action.triggered.connect(self._open_browser)
+                self._open_action.setShortcut(QKeySequence.StandardKey.Open)
+            with file_menu.action("Save", CoreIcon(":/core/iconoir/floppy-disk.svg")) as self._save_action:
+                self._save_action.triggered.connect(self._request_save)
+                self._save_action.setShortcut(QKeySequence.StandardKey.Save)
+            with file_menu.action("Save As...", CoreIcon(":/core/iconoir/page-edit.svg")) as self._save_as_action:
+                self._save_as_action.triggered.connect(self._save_as_browser)
+                self._save_as_action.setShortcut(QKeySequence.StandardKey.SaveAs)
+
+        # ----------------------------------------------------------------------
         # edit --------
-        with (
-            self.menu_bar.menu("Edit") as edit_menu,
-            edit_menu.action("Debug Mode") as debug_action,
-        ):
-            debug_action.setCheckable(True)
-            debug_action.toggled.connect(self.debug_mode.emit)
+        with self.menu_bar.menu("Edit"):
+            pass
 
+        # ----------------------------------------------------------------------
         # view -------
         with self.menu_bar.menu("View"):
             pass
 
+        # ----------------------------------------------------------------------
         # help ----------
         # with (
         #     self._menu_bar.menu("Help") as help_menu,
@@ -200,18 +220,48 @@ class OdcMainWindow(MainToolbarWindow):
 
         self.tool_bar.add_spacer(5)
 
-        with self.tool_bar.add_action(
-                "Save Project",
-            CoreIcon(":/core/iconoir/floppy-disk.svg")
-        ) as save_action:
-            pass
-
-        with self.tool_bar.add_action(
-                "Load Project",
-                CoreIcon(":/odc/iconoir/folder.svg")
-        ) as load_action:
-            pass
+        self.tool_bar.addAction(self._new_action)
+        self.tool_bar.addAction(self._open_action)
+        self.tool_bar.addAction(self._save_action)
+        self.tool_bar.addAction(self._save_as_action)
 
         self.tool_bar.add_stretch()
         self.tool_bar.addAction(self._prefs_action)
         self.tool_bar.add_spacer(5)
+
+    def _save_as_browser(self) -> None:
+        file, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save ODC Project",
+            str(AppMetadata.documents_dir),
+            "ODC Project (*.odc)",
+        )
+        if not file:
+            log.debug(f"saving project canceled")
+            return
+
+        log.debug(f"saving project to: {file}")
+        self.request_save_as.emit(Path(file))
+
+    def _open_browser(self) -> None:
+        AppMetadata.documents_dir.mkdir(exist_ok=True, parents=True)
+
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open ODC Project",
+            str(AppMetadata.documents_dir),
+            "ODC Projects (*.odc)",
+            "",
+            QFileDialog.Option.ReadOnly,
+        )
+
+        if not path:
+            log.debug("open project canceled")
+            return
+
+        self.request_load.emit(Path(path))
+
+    def _request_save(self) -> None:
+        set_cursor(Qt.CursorShape.WaitCursor)
+        self.tool_bar.get_action("Save").setDisabled(True)
+        self.request_save.emit()
