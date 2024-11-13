@@ -3,6 +3,7 @@ import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
+from collections.abc import Mapping
 from urllib.request import urlretrieve
 
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
@@ -14,11 +15,11 @@ class BuildHookCustom(BuildHookInterface):
     """
 
     # https://github.com/arduino/arduino-cli/releases/tag/v1.0.4
-    _URL_MAP = {
-        "linux":   [
+    _URL_MAP: Mapping[str, list[str]] = {
+        "linux": [
             "https://github.com/arduino/arduino-cli/releases/download/v1.0.4/arduino-cli_1.0.4_Linux_64bit.tar.gz",
         ],
-        "darwin":  [
+        "darwin": [
             "https://github.com/arduino/arduino-cli/releases/download/v1.0.4/arduino-cli_1.0.4_macOS_ARM64.tar.gz",
             "https://github.com/arduino/arduino-cli/releases/download/v1.0.4/arduino-cli_1.0.4_macOS_64bit.tar.gz",
         ],
@@ -26,6 +27,7 @@ class BuildHookCustom(BuildHookInterface):
             "https://github.com/arduino/arduino-cli/releases/download/v1.0.4/arduino-cli_1.0.4_Windows_64bit.zip",
         ],
     }
+    _MAC = 2
 
     @property
     def vendor(self) -> Path:
@@ -66,7 +68,7 @@ class BuildHookCustom(BuildHookInterface):
 
         if plat == "darwin":
             to_merge: list[Path] = list(self.vendor.glob("arduino-cli*macOS*"))
-            if len(to_merge) != 2:
+            if len(to_merge) != self._MAC:
                 raise ValueError("problems merging macOS arches")
 
             # merge 2 arches into universal
@@ -74,17 +76,15 @@ class BuildHookCustom(BuildHookInterface):
                 [
                     "lipo",
                     "-create",
-                    "-output", str(self.vendor / "arduino-cli"),
+                    "-output",
+                    str(self.vendor / "arduino-cli"),
                     *[str(m) for m in to_merge],
                 ],
             )
 
             # assert cli is working, probably...
             subprocess.run(
-                [
-                    "arduino-cli",
-                    "version"
-                ],
+                ["arduino-cli", "version"],
                 cwd=str(self.vendor),
                 capture_output=True,
                 check=True,

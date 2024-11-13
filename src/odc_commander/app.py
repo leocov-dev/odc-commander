@@ -1,7 +1,8 @@
+import typing
 from pathlib import Path
+from typing import cast
 
 from loguru import logger
-from PySide6.QtGui import QAction
 from PySide6.QtSerialPort import QSerialPortInfo
 from pyside_app_core.app.application_service import AppMetadata
 from pyside_app_core.errors import excepthook
@@ -14,7 +15,7 @@ from pyside_app_core.ui.widgets.base_app import BaseApp
 from pyside_app_core.utils.cursor import clear_cursor
 from pyside_app_core.utils.signals import OneToManySwitcher
 
-from odc_commander import __version__, commands, controllers, DATA_DIR
+from odc_commander import __version__, controllers, DATA_DIR
 from odc_commander.arduino.sketch import get_sketch
 from odc_commander.arduino.vendor_map import VENDOR_MAP
 from odc_commander.commands import CobsTranscoder, LegacyTranscoder
@@ -24,6 +25,9 @@ from odc_commander.widgets.controller_views.calibration_input_view import Calibr
 from odc_commander.widgets.controller_views.calibration_output_view import CalibrationOutputView
 from odc_commander.widgets.controller_views.runtime_view import RuntimeView
 from odc_commander.widgets.main_window import OdcMainWindow
+
+if typing.TYPE_CHECKING:
+    from PySide6.QtGui import QAction
 
 # ------------------------------------------------------------------------------
 configure_get_logger_func(lambda: logger)
@@ -38,9 +42,7 @@ AppMetadata.init(
     icon_resource=":/odc/app/icon.png",
     help_url="https://github.com/leocov-dev/odc-commander",
     bug_report_url="https://github.com/leocov-dev/odc-commander/issues",
-    oss_licenses=[
-        ":/odc/licenses/arduino-cli.md"
-    ],
+    oss_licenses=[":/odc/licenses/arduino-cli.md"],
 )
 
 
@@ -169,9 +171,13 @@ class OdcCommanderApp(BaseApp[OdcMainWindow]):
         SerialService.DEBUG = debug
 
         # ---
-        if PreferencesService.fqdn_to_pref("app.gen.open-last-proj").value:
-            if last := self.project.get_setting("last-open-project", None):
-                self.project.load(last)
+        if (
+            (pref := PreferencesService.fqdn_to_pref("app.gen.open-last-proj"))
+            and isinstance(pref, PrefItem)
+            and pref.value
+            and (last := cast(Path | None, self.project.get_setting("last-open-project", None)))
+        ):
+            self.project.load(last)
 
     def _on_tab_changed(self, index: int) -> None:
         self._main_window.tab_by_index(index).activated()
@@ -190,7 +196,7 @@ class OdcCommanderApp(BaseApp[OdcMainWindow]):
                         "gen",
                         [
                             PrefItem.new("Open Last Project On Startup", "open-last-proj", True),
-                        ]
+                        ],
                     ),
                     PrefGroup(
                         "Connections",

@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QFileDialog, QTabWidget, QVBoxLayout, QWidget
 from pyside_app_core import log
 from pyside_app_core.app.application_service import AppMetadata
 from pyside_app_core.services.serial_service import SerialService
+from pyside_app_core.services.serial_service.types import Encodable
 from pyside_app_core.ui.standard.main_window import MainToolbarWindow
 from pyside_app_core.ui.widgets.connection_manager import ConnectionManager, PortData
 from pyside_app_core.ui.widgets.core_icon import CoreIcon
@@ -18,16 +19,16 @@ from pyside_app_core.utils.time_ms import SECONDS
 
 from odc_commander.arduino.uploader import ArduinoUploader, SketchData, SketchMap
 from odc_commander.arduino.vendor_map import ProductData, ProductMap, VENDOR_MAP, VendorData
-from odc_commander.interfaces.controller import Controller, ControllerView, SwitchedController
+from odc_commander.interfaces.controller import ControllerView, SwitchedController
 
 
 def _port_data_mapper(port_info: QSerialPortInfo) -> PortData:
     display_name = port_info.systemLocation()
 
     if product_data := (
-            VENDOR_MAP.get(port_info.vendorIdentifier(), cast(VendorData, {}))
-                    .get("products", cast(ProductMap, {}))
-                    .get(port_info.productIdentifier(), cast(ProductData, {}))
+        VENDOR_MAP.get(port_info.vendorIdentifier(), cast(VendorData, {}))
+        .get("products", cast(ProductMap, {}))
+        .get(port_info.productIdentifier(), cast(ProductData, {}))
     ):
         display_name = f"{product_data.get("display_name")} ({port_info.serialNumber()[-6:]})"
 
@@ -121,9 +122,9 @@ class OdcMainWindow(MainToolbarWindow):
         tab_index = self._main_tabs.addTab(view, view.TAB_NAME or view.__class__.__name__)
 
         self._tab_sketch_map[tab_index] = {
-            "sketch":            sketch,
+            "sketch": sketch,
             "uploader_btn_text": uploader_btn_text,
-            "readonly":          readonly,
+            "readonly": readonly,
         }
 
         with (
@@ -145,8 +146,8 @@ class OdcMainWindow(MainToolbarWindow):
     def current_tab_index(self) -> int:
         return self._main_tabs.currentIndex()
 
-    def tab_by_index(self, index: int) -> SwitchedController:
-        view = cast(ControllerView, self._main_tabs.widget(index))
+    def tab_by_index[T: Encodable](self, index: int) -> SwitchedController[T]:
+        view = cast(ControllerView[SwitchedController[T]], self._main_tabs.widget(index))  # type: ignore[type-var]
         return view.controller
 
     def _port_changed(self, port_info: QSerialPortInfo | None, board: str) -> None:
@@ -237,7 +238,7 @@ class OdcMainWindow(MainToolbarWindow):
             "ODC Project (*.odc)",
         )
         if not file:
-            log.debug(f"saving project canceled")
+            log.debug("saving project canceled")
             return
 
         log.debug(f"saving project to: {file}")

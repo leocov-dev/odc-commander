@@ -69,7 +69,7 @@ class RuntimeView(ControllerView[Runtime]):
         self._controller.add_param(param)
 
     def _confirm_clear(self) -> None:
-        res = QMessageBox.question(
+        res = QMessageBox.question(  # type: ignore[call-overload]
             None,
             "Clear All Parameters",
             "Are you sure you want to clear all parameters?",
@@ -80,7 +80,6 @@ class RuntimeView(ControllerView[Runtime]):
             self._view.model().clear()
 
     def _edit_index(self, index: QPersistentModelIndex) -> None:
-
         edit = ParamEditDialog(index)
         edit.accepted.connect(self._edit_accepted)
 

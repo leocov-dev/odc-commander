@@ -1,3 +1,4 @@
+from typing import Literal
 from PySide6.QtCore import QObject, Qt, QTimerEvent, Signal
 from pyside_app_core.services.serial_service.types import Encodable, TranscoderInterface
 
@@ -8,9 +9,11 @@ from odc_commander.interfaces.project.v1 import OutputCalibrationComponentData
 class CalibrationOutput(SwitchedController[Encodable]):
     unsaved_changes = Signal()
 
-    component_type = "calibration_output"
+    component_type: Literal["calibration_output"] = "calibration_output"
 
-    def __init__(self, serial_config: SerialConfig, transcoder: type[TranscoderInterface], *, parent: QObject | None = None) -> None:
+    def __init__(
+        self, serial_config: SerialConfig, transcoder: type[TranscoderInterface], *, parent: QObject | None = None
+    ) -> None:
         super().__init__(
             serial_config=serial_config,
             transcoder=transcoder,

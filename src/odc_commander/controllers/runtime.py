@@ -1,14 +1,11 @@
-import struct
+from typing import Literal
 
 from PySide6.QtCore import QObject, Signal
 from pyside_app_core import log
-from pyside_app_core.constants import DATA_STRUCT_ENDIAN
-from pyside_app_core.services.serial_service.conversion_utils import int_from_bytes
 from pyside_app_core.services.serial_service.types import Encodable, TranscoderInterface
 
-from odc_commander.commands import LegacyTranscoder
 from odc_commander.commands.basic_params import FloatParam
-from odc_commander.commands.transcoder import FloatResult, Result
+from odc_commander.commands.transcoder import FloatResult
 from odc_commander.interfaces.controller import SerialConfig, SwitchedController
 from odc_commander.interfaces.project.v1 import RuntimeComponentData
 from odc_commander.widgets.param_list.param_model import ParamModel
@@ -18,10 +15,10 @@ class Runtime(SwitchedController[Encodable]):
     unsaved_changes = Signal()
     param_validation = Signal(bool)
 
-    component_type = "runtime"
+    component_type: Literal["runtime"] = "runtime"
 
     # defaults for standard dynamic_clamp.ino firmware
-    _DEFAULTS = [
+    _DEFAULTS = (
         FloatParam(label="g_shunt", default=0.0, unit="nS", min_value=0.0, max_value=1000.0),
         FloatParam(label="g_hcn", default=0.0, unit="nS", min_value=0.0, max_value=1000.0),
         FloatParam(label="g_Na", default=0.0, unit="nS", min_value=0.0, max_value=1000.0),
@@ -30,7 +27,7 @@ class Runtime(SwitchedController[Encodable]):
         FloatParam(label="m_OU_inh", default=0.0, unit="nS", min_value=0.0, max_value=1000.0),
         FloatParam(label="D_OU_inh", default=0.0, unit="nS²/msec", min_value=0.0, max_value=1000.0),
         FloatParam(label="g_espc", default=0.0, unit="nS", min_value=0.0, max_value=1000.0),
-    ]
+    )
 
     def __init__(self, serial_config: SerialConfig, transcoder: type[TranscoderInterface], *, parent: QObject):
         super().__init__(
@@ -41,7 +38,7 @@ class Runtime(SwitchedController[Encodable]):
 
         self._model = ParamModel.from_param_list(self._DEFAULTS, parent=self)
 
-        self._param_validation = []
+        self._param_validation: list[float] = []
 
         # ---
         self._model.dataChanged.connect(lambda *_: self.unsaved_changes.emit())
@@ -97,9 +94,8 @@ class Runtime(SwitchedController[Encodable]):
 
         if len(self._param_validation) == len(self.params):
             is_valid = self._param_validation == [p.value for p in self.params]
-            log.debug(f"filled validation array: {self._param_validation} - {[p.value for p in self.params]} - {is_valid}")
+            log.debug(
+                f"filled validation array: {self._param_validation} - {[p.value for p in self.params]} - {is_valid}"
+            )
             self.param_validation.emit(is_valid)
             self._param_validation.clear()
-
-
-

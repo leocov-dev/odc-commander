@@ -1,10 +1,11 @@
+from typing import cast
+
 from odc_commander.commands.basic_params import FloatParam
-from PySide6.QtCore import QObject, Qt, Signal
-from PySide6.QtWidgets import QDoubleSpinBox, QHBoxLayout, QLabel, QLayout, QSizePolicy, QWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QDoubleSpinBox, QHBoxLayout, QLabel, QSizePolicy, QWidget
 
 
 class ParamWidget(QWidget):
-
     value_changed = Signal(float)
 
     @property
@@ -23,12 +24,12 @@ class ParamWidget(QWidget):
     def __init__(
         self,
         param: FloatParam | None = None,
-        parent: QObject | None = None,
+        parent: QWidget | None = None,
     ):
         super().__init__(parent=parent)
         self.setAutoFillBackground(True)
 
-        self.setContentsMargins(0,0,0,0)
+        self.setContentsMargins(0, 0, 0, 0)
         self.setLayout(QHBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
@@ -51,7 +52,7 @@ class ParamWidget(QWidget):
         self._spin_box.valueChanged.connect(self.value_changed)
 
     def layout(self) -> QHBoxLayout:
-        return super().layout()
+        return cast(QHBoxLayout, super().layout())
 
     def set_values(
         self,

@@ -22,9 +22,7 @@ class ParamView(QListView):
         self.setDefaultDropAction(Qt.DropAction.MoveAction)
         self.setDropIndicatorShown(True)
 
-        self.setEditTriggers(
-            QAbstractItemView.EditTrigger.NoEditTriggers
-        )
+        self.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         self.setItemDelegate(ParamDelegate(self))
         self.itemDelegate().open_editor.connect(self.edit)
@@ -34,14 +32,14 @@ class ParamView(QListView):
     def model(self) -> ParamModel:
         return super().model()  # type: ignore[return-value]
 
-    def itemDelegate(self) -> ParamDelegate:
+    def itemDelegate(self) -> ParamDelegate:  # type: ignore[override]
         return super().itemDelegate()  # type: ignore[return-value]
 
     def repaint_index(self, index: QModelIndex | QPersistentModelIndex) -> None:
         self.viewport().repaint(self.rectForIndex(index))
 
     def update_delegate_mouse_pos(self, point: QPoint) -> None:
-        self.itemDelegate()._mouse = point
+        self.itemDelegate()._mouse = point  # noqa: SLF001
 
     def _reset_index(self, index: QPersistentModelIndex) -> None:
         default = index.data(ParamData.DEFAULT)

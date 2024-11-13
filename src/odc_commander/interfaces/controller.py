@@ -62,7 +62,6 @@ class Controller(QObject, Generic[_D]):
 
 
 class SwitchedController(Controller[_D]):
-
     @property
     def switch_index(self) -> int:
         return self._switch_index
@@ -85,7 +84,7 @@ class SwitchedController(Controller[_D]):
 
         self._switch_index = self._serial.com_data.connect_switched(self.handle_serial_data)
 
-    def activated(self):
+    def activated(self) -> None:
         self.serial_com.set_transcoder(self._transcoder)
 
 

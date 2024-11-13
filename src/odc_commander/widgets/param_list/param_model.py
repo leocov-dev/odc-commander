@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from enum import IntEnum
 from typing import Self
 
@@ -36,12 +37,11 @@ def _param_to_std_item(param: FloatParam) -> QStandardItem:
 
 
 class ParamModel(QStandardItemModel):
-
     def supportedDropActions(self) -> Qt.DropAction:
         return Qt.DropAction.MoveAction
 
     @classmethod
-    def from_param_list(cls, data: list[FloatParam], *, parent: QObject) -> Self:
+    def from_param_list(cls, data: Sequence[FloatParam], *, parent: QObject) -> Self:
         model = cls(parent=parent)
 
         for param in data:

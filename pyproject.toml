@@ -1,8 +1,7 @@
 [build-system]
 requires = [
     "hatchling",
-#    "pyside-app-core>=0.11.0",
-    "pyside-app-core @ file:///Users/leo/src/pyside-app-core",
+    "pyside-app-core>=0.13.0",
     "hatch-vcs",
 ]
 build-backend = "hatchling.build"
@@ -22,7 +21,7 @@ dependencies = [
     "cobs>=1.2.1",
     "loguru",
     "pydantic",
-#    "pyside-app-core>=0.11.0",
+    "pyside-app-core>=0.13.2",
 ]
 dynamic = ["version"]
 
@@ -74,7 +73,7 @@ type = "virtual"
 path = ".venv"
 post-install-commands = [
     "hatch build --ext",
-    "pip install -e {root}/../pyside-app-core",  # TODO: remove localdev
+#    "pip install -e {root}/../pyside-app-core",  # TODO: remove localdev
 ]
 
 [tool.hatch.envs.default.scripts]
@@ -144,6 +143,11 @@ extend-ignore = [
 ]
 "ODC Commander.py" = [
     "INP001",
+]
+"hatch_build.py" = [
+    "S607",
+    "S310",
+    "TRY002",
 ]
 
 [tool.mypy]

@@ -3,7 +3,7 @@ from collections.abc import Iterable, MutableSequence
 from typing import Any, overload, Protocol, TypeVar, Self
 
 from pydantic import BaseModel, Field, model_validator
-from pyside_app_core.constants import DATA_ENCODING_ENDIAN, DATA_STRUCT_ENDIAN
+from pyside_app_core.constants import DATA_STRUCT_ENDIAN
 
 from odc_commander.commands.transcoder import Message
 
@@ -22,7 +22,7 @@ class ParamType(Protocol[_V]):
 
 
 class FloatParam(BaseModel):
-    value: float = Field()
+    value: float = Field(default=0.0)
     default: float
     label: str
     unit: str = ""
@@ -33,7 +33,7 @@ class FloatParam(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def _apply_default(cls, data: dict[str, Any]):
+    def _apply_default(cls, data: dict[str, Any]) -> dict[str, Any]:
         if "value" not in data:
             data["value"] = data.get("default", 0.0)
         if "min_value" not in data:
@@ -119,4 +119,4 @@ class FloatArrayParam(ParamType[list[float]], Message, MutableSequence[FloatPara
 
     def __str__(self) -> str:
         str_vals = [f"{v:.6f}" for v in self.value]
-        return f"<{self.__class__.__name__}: [{', '.join(str_vals)}]> {self.encode()}"
+        return f"<{self.__class__.__name__}: [{', '.join(str_vals)}]> {self.encode()!r}"

@@ -1,8 +1,6 @@
-import struct
 from typing import cast, Self
 
 from cobs import cobs  # type: ignore[import-untyped]
-from pyside_app_core.constants import DATA_STRUCT_ENDIAN
 from pyside_app_core.services.serial_service.types import ChunkedData, Decodable, Encodable, TranscoderInterface
 
 

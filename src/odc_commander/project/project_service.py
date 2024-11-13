@@ -1,15 +1,15 @@
 import time
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field
 from PySide6.QtCore import QObject, Signal
 from PySide6.QtWidgets import QApplication
 from pyside_app_core import log
 from pyside_app_core.mixin.settings_mixin import SettingsMixin
-from pyside_app_core.services.preferences_service import PreferencesService
 
-from odc_commander.interfaces.project_component import ProjectComponentData, ProjectComponentInterface
+from odc_commander.interfaces.project.v1 import ProjectComponentData
+from odc_commander.interfaces.project_component import ProjectComponentInterface
 
 
 class ProjectLoadingError(Exception):
@@ -24,7 +24,6 @@ class Project(BaseModel):
 
 
 class ProjectService(SettingsMixin, QObject):
-
     unsaved_changes = Signal(str)
     project_loaded = Signal(str)
     project_saved = Signal(str)
@@ -40,17 +39,19 @@ class ProjectService(SettingsMixin, QObject):
 
     def __init__(self, parent: QObject) -> None:
         super().__init__(parent)
-        self._components: dict[str, ProjectComponentInterface] = {}
+        self._components: dict[str, ProjectComponentInterface[Any]] = {}
 
         self._file_path: Path | None = None
 
         # ---
-        QApplication.instance().aboutToQuit.connect(self._store_current_project)
+        QApplication.instance().aboutToQuit.connect(self._store_current_project)  # type: ignore[union-attr]
 
-    def register_component(self, component: ProjectComponentInterface) -> None:
+    def register_component[T](self, component: ProjectComponentInterface[T]) -> None:
         self._components[component.component_type] = component
-        component.unsaved_changes.connect(lambda: log.debug(f"unsaved changes: {component}"))
-        component.unsaved_changes.connect(lambda: self.unsaved_changes.emit(self.name))
+        component.unsaved_changes.connect(  # type: ignore[call-overload]
+            lambda: log.debug(f"unsaved changes: {component}")
+        )
+        component.unsaved_changes.connect(lambda: self.unsaved_changes.emit(self.name))  # type: ignore[call-overload]
 
     def new(self) -> None:
         self._file_path = None
@@ -73,7 +74,7 @@ class ProjectService(SettingsMixin, QObject):
 
         for i in range(20):
             time.sleep(0.1)
-            self.progress.emit(i+1, 20)
+            self.progress.emit(i + 1, 20)
             QApplication.processEvents()
 
         self.file_path.parent.mkdir(parents=True, exist_ok=True)

@@ -11,20 +11,24 @@ class _ComponentBase(BaseModel):
 
 class RuntimeComponentData(_ComponentBase):
     """"""
+
     component_type: Literal["runtime"]
     params: list[FloatParam]
 
 
 class InputCalibrationComponentData(_ComponentBase):
     """"""
+
     component_type: Literal["calibration_input"]
 
 
 class OutputCalibrationComponentData(_ComponentBase):
     """"""
+
     component_type: Literal["calibration_output"]
 
 
 ProjectComponentData = Annotated[
-    RuntimeComponentData | InputCalibrationComponentData | OutputCalibrationComponentData, Field(discriminator="component_type")
+    RuntimeComponentData | InputCalibrationComponentData | OutputCalibrationComponentData,
+    Field(discriminator="component_type"),
 ]

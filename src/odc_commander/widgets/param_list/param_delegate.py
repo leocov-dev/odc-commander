@@ -1,10 +1,23 @@
 from typing import cast, NamedTuple
 
-from PySide6.QtCore import QEvent, QMargins, QModelIndex, QPersistentModelIndex, QPoint, QRect, QSize, QTimer, Signal
+from PySide6.QtCore import (
+    QAbstractItemModel,
+    QEvent,
+    QMargins,
+    QModelIndex,
+    QPersistentModelIndex,
+    QPoint,
+    QRect,
+    QSize,
+    QTimer,
+    Signal,
+)
 from PySide6.QtGui import QDragEnterEvent, QIcon, QMouseEvent, QPainter, QPalette, Qt
 from PySide6.QtWidgets import (
-    QAbstractSpinBox, QApplication,
-    QDoubleSpinBox, QStyle,
+    QAbstractSpinBox,
+    QApplication,
+    QDoubleSpinBox,
+    QStyle,
     QStyledItemDelegate,
     QStyleOptionSpinBox,
     QStyleOptionViewItem,
@@ -42,7 +55,9 @@ class ParamDelegate(QStyledItemDelegate):
     def __init__(self, parent: QWidget):
         super().__init__(parent)
 
-        self._edit = CoreIcon(":/odc/iconoir/edit-pencil.svg", )
+        self._edit = CoreIcon(
+            ":/odc/iconoir/edit-pencil.svg",
+        )
         self._drag = CoreIcon(":/odc/iconoir/menu.svg")
         self._reset = CoreIcon(":/odc/iconoir/warning-triangle.svg")
 
@@ -50,8 +65,13 @@ class ParamDelegate(QStyledItemDelegate):
         self._edit_down = False
         self._reset_down = False
 
-    def editorEvent(self, event: QEvent, model, option, index) -> bool:
-
+    def editorEvent(
+        self,
+        event: QEvent,
+        model: QAbstractItemModel,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ) -> bool:
         rects = self._rects(option)
 
         def _unclick() -> None:
@@ -59,7 +79,6 @@ class ParamDelegate(QStyledItemDelegate):
             self._reset_down = False
 
         if isinstance(event, QDragEnterEvent):
-            print(event)
             _unclick()
 
         elif isinstance(event, QMouseEvent):
@@ -93,9 +112,9 @@ class ParamDelegate(QStyledItemDelegate):
                 elif event.type() == QMouseEvent.Type.MouseButtonRelease:
                     _unclick()
 
-            option.styleObject.viewport().repaint(rects.drag)
-            option.styleObject.viewport().repaint(rects.edit)
-            option.styleObject.viewport().repaint(rects.reset)
+            option.styleObject.viewport().repaint(rects.drag)  # type: ignore[attr-defined]
+            option.styleObject.viewport().repaint(rects.edit)  # type: ignore[attr-defined]
+            option.styleObject.viewport().repaint(rects.reset)  # type: ignore[attr-defined]
 
         return super().editorEvent(event, model, option, index)
 
@@ -103,7 +122,7 @@ class ParamDelegate(QStyledItemDelegate):
         self,
         parent: QWidget,
         option: QStyleOptionViewItem,  # noqa: ARG002
-        index: QModelIndex | QPersistentModelIndex,  # noqa: ARG002
+        index: QModelIndex | QPersistentModelIndex,
     ) -> QDoubleSpinBox:
         """"""
         editor = QDoubleSpinBox(parent=parent)
@@ -125,25 +144,25 @@ class ParamDelegate(QStyledItemDelegate):
 
     def setModelData(
         self,
-        editor: QDoubleSpinBox,
-        model: ParamModel,
-        index: QModelIndex | QPersistentModelIndex
+        editor: QDoubleSpinBox,  # type: ignore[override]
+        model: ParamModel,  # type: ignore[override]
+        index: QModelIndex | QPersistentModelIndex,
     ) -> None:
         model.setData(index, editor.value(), ParamData.VALUE)
 
-    def setEditorData(self, editor: QDoubleSpinBox, index: QModelIndex | QPersistentModelIndex) -> None:
+    def setEditorData(self, editor: QDoubleSpinBox, index: QModelIndex | QPersistentModelIndex) -> None:  # type: ignore[override]
         new_value = index.data(ParamData.VALUE)
         if index.isValid() and editor.value() != new_value:
             editor.setValue(new_value)
 
-    def sizeHint(self, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex) -> QSize:
+    def sizeHint(self, _: QStyleOptionViewItem, __: QModelIndex | QPersistentModelIndex) -> QSize:
         return QSize(100, 35)
 
     def updateEditorGeometry(
         self,
-        editor: QDoubleSpinBox,
+        editor: QDoubleSpinBox,  # type: ignore[override]
         option: QStyleOptionViewItem,
-        index: QModelIndex | QPersistentModelIndex
+        _: QModelIndex | QPersistentModelIndex,
     ) -> None:
         rects = self._rects(option)
         editor.setGeometry(rects.spinbox.bounds)
@@ -162,32 +181,30 @@ class ParamDelegate(QStyledItemDelegate):
         )
 
     def paint(
-        self,
-        painter: QPainter,
-        option: QStyleOptionViewItem,
-        index: QModelIndex | QPersistentModelIndex
+        self, painter: QPainter, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex
     ) -> None:
-
         style = QApplication.style()
-        palette = cast(QPalette, option.palette)
+        palette = cast(QPalette, option.palette)  # type: ignore[attr-defined]
 
         with safe_paint(painter) as p:
             param = self.from_index(index)
-            p.setClipRect(option.rect)
+            p.setClipRect(option.rect)  # type: ignore[attr-defined]
 
             rects = self._rects(option)
 
             p.fillRect(
-                option.rect,
+                option.rect,  # type: ignore[attr-defined]
                 palette.color(QPalette.ColorGroup.Normal, QPalette.ColorRole.Window),
             )
 
             if param.min_value < param.value < param.max_value:
-                rects.spinbox.opts.stepEnabled = QAbstractSpinBox.StepEnabledFlag.StepUpEnabled | QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
+                rects.spinbox.opts.stepEnabled = (
+                    QAbstractSpinBox.StepEnabledFlag.StepUpEnabled | QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
+                )  # type: ignore[attr-defined]
             if param.value == param.min_value:
-                rects.spinbox.opts.stepEnabled = QAbstractSpinBox.StepEnabledFlag.StepUpEnabled
+                rects.spinbox.opts.stepEnabled = QAbstractSpinBox.StepEnabledFlag.StepUpEnabled  # type: ignore[attr-defined]
             if param.value == param.max_value:
-                rects.spinbox.opts.stepEnabled = QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
+                rects.spinbox.opts.stepEnabled = QAbstractSpinBox.StepEnabledFlag.StepDownEnabled  # type: ignore[attr-defined]
 
             style.drawComplexControl(QStyle.ComplexControl.CC_SpinBox, rects.spinbox.opts, p)
 
@@ -198,7 +215,7 @@ class ParamDelegate(QStyledItemDelegate):
                 palette,
                 True,
                 f"{param.value:.{param.decimals}f} {param.unit}",
-                QPalette.ColorRole.Text
+                QPalette.ColorRole.Text,
             )
 
             style.drawItemText(
@@ -208,7 +225,7 @@ class ParamDelegate(QStyledItemDelegate):
                 palette,
                 True,
                 f"{param.label}",
-                QPalette.ColorRole.Text
+                QPalette.ColorRole.Text,
             )
 
             mode = QIcon.Mode.Active if self._edit_down or self._reset_down else QIcon.Mode.Normal
@@ -250,7 +267,7 @@ class ParamDelegate(QStyledItemDelegate):
         5. reset
         """
         style = QApplication.style()
-        bounds = cast(QRect, option.rect)
+        bounds = cast(QRect, option.rect)  # type: ignore[attr-defined]
         height = bounds.height()
         spacing = 4
 
@@ -266,11 +283,11 @@ class ParamDelegate(QStyledItemDelegate):
         spinbox_bounds = middle_rect.adjusted((middle_rect.width() // 2) + spacing, 0, -spacing, 0)
 
         sb = QStyleOptionSpinBox()
-        sb.palette = option.palette
-        sb.fontMetrics = option.fontMetrics
-        sb.font = option.font
-        sb.rect = spinbox_bounds
-        sb.frame = True
+        sb.palette = option.palette  # type: ignore[attr-defined]
+        sb.fontMetrics = option.fontMetrics  # type: ignore[attr-defined]
+        sb.font = option.font  # type: ignore[attr-defined]
+        sb.rect = spinbox_bounds  # type: ignore[attr-defined]
+        sb.frame = True  # type: ignore[attr-defined]
 
         spinbox_text = style.subControlRect(
             QStyle.ComplexControl.CC_SpinBox,

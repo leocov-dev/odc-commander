@@ -8,13 +8,13 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,
     QPushButton,
-    QSpinBox, QVBoxLayout,
+    QSpinBox,
+    QVBoxLayout,
 )
 from pyside_app_core.validators.float_validator import FloatValidator
 
 
 class ParamCreateDialog(QDialog):
-
     @property
     def param(self) -> FloatParam:
         return FloatParam(
@@ -56,7 +56,7 @@ class ParamCreateDialog(QDialog):
     def maximum(self) -> float:
         return float(self._maximum.text() or self.default * 2)
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(parent=None)
         self.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self.setModal(True)
@@ -121,7 +121,7 @@ class ParamCreateDialog(QDialog):
         cancel = QPushButton("Cancel", parent=self)
         ly_btn.addWidget(cancel, stretch=2)
 
-        ly_btn.addStretch(1.5)
+        ly_btn.addStretch(1.5)  # type: ignore[arg-type]
 
         self._accept = QPushButton("Add Parameter", parent=self)
         ly_btn.addWidget(self._accept, stretch=2)
@@ -144,7 +144,7 @@ class ParamCreateDialog(QDialog):
         ]:
             sig.connect(self._reset_example)
 
-    def _reset_example(self):
+    def _reset_example(self) -> None:
         self._example.set_values(
             value=self.default,
             label=self.label,
@@ -163,8 +163,10 @@ class ParamCreateDialog(QDialog):
         self._validate()
 
     def _validate(self) -> None:
-        valid = all([
-            bool(self._label.text()),
-            self.step > 0,
-        ])
+        valid = all(
+            [
+                bool(self._label.text()),
+                self.step > 0,
+            ]
+        )
         self._accept.setEnabled(valid)

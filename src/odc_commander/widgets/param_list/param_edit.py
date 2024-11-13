@@ -11,15 +11,15 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLineEdit,
     QPushButton,
-    QSpinBox, QVBoxLayout,
+    QSpinBox,
+    QVBoxLayout,
 )
 from pyside_app_core.validators.float_validator import FloatValidator
 
 
 class ParamEditDialog(QDialog):
-
     @property
-    def index(self):
+    def index(self) -> QPersistentModelIndex:
         return self._index
 
     @property
@@ -186,10 +186,12 @@ class ParamEditDialog(QDialog):
         self._validate()
 
     def _validate(self) -> None:
-        valid = all([
-            bool(self._label.text()),
-            self.step > 0,
-            ])
+        valid = all(
+            [
+                bool(self._label.text()),
+                self.step > 0,
+            ]
+        )
         self._accept.setEnabled(valid)
 
     def _mark(self) -> None:
