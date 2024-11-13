@@ -198,9 +198,9 @@ class ParamDelegate(QStyledItemDelegate):
             )
 
             if param.min_value < param.value < param.max_value:
-                rects.spinbox.opts.stepEnabled = (
+                rects.spinbox.opts.stepEnabled = (  # type: ignore[attr-defined]
                     QAbstractSpinBox.StepEnabledFlag.StepUpEnabled | QAbstractSpinBox.StepEnabledFlag.StepDownEnabled
-                )  # type: ignore[attr-defined]
+                )
             if param.value == param.min_value:
                 rects.spinbox.opts.stepEnabled = QAbstractSpinBox.StepEnabledFlag.StepUpEnabled  # type: ignore[attr-defined]
             if param.value == param.max_value:

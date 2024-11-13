@@ -107,14 +107,14 @@ format-fix = [
     'ruff format{env:HATCH_FMT_ARGS:} {args:.}'
 ]
 lint-check = [
-    'mypy',
     'ruff check{env:HATCH_FMT_ARGS:} {args:.}',
     'lint-imports',
+    'mypy',
 ]
 lint-fix = [
-    'mypy',
     'ruff check{env:HATCH_FMT_ARGS:} --fix {args:.}',
     'lint-imports',
+    'mypy',
 ]
 
 # -----------------------------------------------------------------------------
