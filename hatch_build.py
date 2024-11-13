@@ -82,10 +82,9 @@ class BuildHookCustom(BuildHookInterface):
                 ],
             )
 
-            # assert cli is working, probably...
+            # assert merged cli is working
             subprocess.run(
-                ["arduino-cli", "version"],
-                cwd=str(self.vendor),
+                [str(self.vendor / "arduino-cli"), "version"],
                 capture_output=True,
                 check=True,
             )
