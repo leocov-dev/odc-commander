@@ -1,13 +1,10 @@
 from typing import Protocol
 
-from odc_commander.interfaces.project.v1 import _ComponentBase
+from pydantic import BaseModel
 from PySide6.QtCore import Signal
-from typing_extensions import TypeVar
-
-T = TypeVar("T", bound=_ComponentBase)
 
 
-class ProjectComponentInterface[T](Protocol):
+class ProjectComponentInterface[T: BaseModel](Protocol):
     unsaved_changes: Signal
 
     @property

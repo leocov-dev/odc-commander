@@ -46,7 +46,7 @@ class ProjectService(SettingsMixin, QObject):
         # ---
         QApplication.instance().aboutToQuit.connect(self._store_current_project)  # type: ignore[union-attr]
 
-    def register_component[T](self, component: ProjectComponentInterface[T]) -> None:
+    def register_component[T: BaseModel](self, component: ProjectComponentInterface[T]) -> None:
         self._components[component.component_type] = component
         component.unsaved_changes.connect(  # type: ignore[call-overload]
             lambda: log.debug(f"unsaved changes: {component}")
