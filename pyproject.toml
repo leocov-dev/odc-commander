@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "hatchling",
-    "pyside-app-core>=0.14.2",
+    "pyside-app-core>=0.14.4",
     "hatch-vcs",
 ]
 build-backend = "hatchling.build"
