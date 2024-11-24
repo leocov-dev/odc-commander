@@ -100,7 +100,7 @@ jobs:
           python-version-file: 'pyproject.toml'
 
       - name: Release Build
-        run: pipx run hatch build -t pyside-app
+        run: pipx run hatch -v build -t pyside-app
 
       - name: Archive build artifacts
         uses: actions/upload-artifact@v4
