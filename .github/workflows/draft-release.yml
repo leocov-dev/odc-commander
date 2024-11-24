@@ -1,39 +1,72 @@
-name: Create Draft Release
+name: Create Release
 
 on:
   push:
-    tags:
-      - "*.*.*"
+    branches:
+      - main
+    tags-ignore:
+      - "*"
 
 jobs:
 
   # -------------
-  release-checks:
-    name: Pre-release Checks
+  release:
+    name: Create A Release
+    if: github.ref == 'refs/heads/main'
 
-    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
 
     outputs:
-      TAG: ${{ steps.vars.outputs.tag }}
+      TAG: ${{ steps.semver.outputs.nextStrict }}
 
+    runs-on: ubuntu-latest
     steps:
-      - name: Get Version Tag
-        id: vars
-        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          # Personal Access Token enables git push in actions (repo contents permission)
+          token: ${{ secrets.PAT }}
 
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Calculate next version
+        id: semver
+        uses: ietf-tools/semver-action@v1.8.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check Version Strings
-        env:
-          TAG: ${{ steps.vars.outputs.tag }}
-        run: pipx run hatch run scripts/validate-version.py --check-tag
+      - name: Get current version
+        id: current
+        run: echo "version=$(pipx run hatch version | tr -d '\n')" >> $GITHUB_OUTPUT
+
+      - if: ${{ steps.current.outputs.version == steps.semver.outputs.nextStrict || !steps.current.outputs.version }}
+        run: exit 1
+
+      - name: Commit version change and tag
+        run: |
+          git config --global user.name 'GitHub Automation'
+          git config --global user.email 'automation[bot]@leocov.com'
+          git tag ${{ steps.semver.outputs.nextStrict }}
+          git push --tags
+
+      - name: Generate Changelog
+        id: changelog
+        uses: requarks/changelog-action@v1.9.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ steps.semver.outputs.nextStrict }}
+          excludeScopes: "release"
+
+      - uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.semver.outputs.nextStrict }}
+          name: "Release v${{ steps.semver.outputs.nextStrict }}"
+          body: ${{ steps.changelog.outputs.changelog }}
 
 
   # -------------
   release-build:
     name: Build (${{ matrix.os }})
-    needs: [ release-checks ]
+    needs: [ release ]
 
     strategy:
       matrix:
@@ -77,9 +110,9 @@ jobs:
 
 
   # -------------
-  release-draft:
-    name: Create Draft Release
-    needs: [ release-checks, release-build ]
+  upload-release-assets:
+    name: Upload Release Assets
+    needs: [ release, release-build ]
 
     permissions:
       contents: write
@@ -98,14 +131,6 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R dist/
-
-      - name: Draft Release
-        uses: release-drafter/release-drafter@v5
-        with:
-          tag: ${{ needs.release-checks.outputs.TAG }}
-          version: ${{ needs.release-checks.outputs.TAG }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Release Asset
         env:
